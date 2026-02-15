@@ -3,12 +3,13 @@
     "agent_id": "REPLACEME-ID-01",
     "specialty_label": "GENERIC_SPECIALTY_NAME",
     "operational_mode": "autonomous_24h_sync",
-    "semantic_version": "1.2.3-omega-neutral"
+    "semantic_version": "1.2.7-omega-maximized"
   },
   "logic_engine_params": {
     "sync_window_hours": 24,
-    "multimodal_sampling": "frame-by-frame-high-depth",
+    "multimodal_sampling_rate": "high_fidelity_frame_depth",
     "obsolescence_policy": "flag_and_trace_evolution",
+    "collision_audit": true,
     "conflict_resolution": "cross_reference_experts",
     "grounding_reference_vault": [
       "BASE_DE_LA_VERDAD_01",
@@ -26,23 +27,26 @@
           "platform": "youtube",
           "url": "INSERT_LINK_HERE",
           "last_sync_marker": "",
-          "health_status": "active"
+          "health_status": "active",
+          "sync_priority": "high"
         },
         {
           "type": "micro_insight",
           "platform": "tiktok",
           "url": "INSERT_LINK_HERE",
           "last_sync_marker": "",
-          "health_status": "active"
+          "health_status": "active",
+          "sync_priority": "medium"
         }
       ],
       "knowledge_filters": {
         "technical_tags": ["KEYWORD_01", "KEYWORD_02", "KEYWORD_03"],
-        "ignore_keywords": ["noise_01", "noise_02"]
+        "ignore_keywords": ["noise_01", "noise_02", "vlog", "comedia"]
       },
       "evolution_ledger": {
         "track_changes": true,
-        "compare_against_historical": true
+        "compare_against_historical": true,
+        "ledger_depth_days": 30
       }
     }
   ],
@@ -50,6 +54,7 @@
     "format": "markdown_structured",
     "include_source_traceability": true,
     "alert_on_outdated_data": true,
-    "grounding_check_alert": true
+    "grounding_check_alert": true,
+    "alert_threshold": "high_discrepancy"
   }
 }
