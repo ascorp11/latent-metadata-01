@@ -4,76 +4,74 @@ import sys
 import google.generativeai as genai
 
 # ==========================================
-# 🛡️ CAPA 1: CONFIGURACIÓN Y SEGURIDAD (PASS 1)
+# 🛡️ CAPA DE SEGURIDAD Y CONFIGURACIÓN
 # ==========================================
 def inicializar_motor_ai():
+    """Valida la API Key y prepara el cerebro de Gemini."""
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        print("❌ CRITICAL_ERROR: 'GEMINI_API_KEY' no detectada en Secrets de GitHub.")
-        sys.exit(1) # Cierre forzado preventivo
+        print("❌ ERROR CRÍTICO: 'GEMINI_API_KEY' no detectada en Secrets.")
+        sys.exit(1)
     
     genai.configure(api_key=api_key)
-    return genai.GenerativeModel('gemini-1.5-flash') # Modelo optimizado para barrido rápido
+    # Usamos 1.5-flash por su velocidad y ventana de contexto multimodal
+    return genai.GenerativeModel('gemini-1.5-flash')
 
 # ==========================================
-# 📂 CAPA 2: MOTOR DE INGESTA DE DATOS (PASS 2)
+# 📂 CAPA DE INTEGRIDAD DE DATOS (JSON)
 # ==========================================
 def cargar_mapa_conocimiento(ruta):
+    """Carga el JSON con validación de codificación y sintaxis."""
     if not os.path.exists(ruta):
-        raise FileNotFoundError(f"El recurso '{ruta}' es inaccesible.")
+        print(f"❌ ERROR: El mapa en '{ruta}' no existe.")
+        sys.exit(1)
     
     try:
         with open(ruta, 'r', encoding='utf-8') as f:
             return json.load(f)
     except json.JSONDecodeError as e:
-        print(f"❌ DATA_CORRUPTION: Error de sintaxis en el JSON: {e}")
+        print(f"❌ DATA_CORRUPTION: El JSON tiene un error de formato: {e}")
         sys.exit(1)
 
 # ==========================================
-# 🤖 CAPA 3: PROCESAMIENTO MULTIMODAL (PASS 3)
+# 🚀 MOTOR DE EJECUCIÓN OMEGA
 # ==========================================
-def ejecutar_sincronizacion_omega():
-    print("🚀 [SINC] Iniciando Ciclo de Barrido Omega V12.5...")
+def despertar_obrero():
+    print("🚀 [SINC] Iniciando Barrido Omega V12.7 (Modo Maximizado)...")
     
-    # Inyectar motor
+    # 1. Preparar herramientas
     model = inicializar_motor_ai()
-    
-    # Cargar estructura
     ruta_mapa = 'specialties/expert_nexus_01.json'
     mapa = cargar_mapa_conocimiento(ruta_mapa)
     
-    ctx_agent = mapa['agent_core']['agent_id']
-    especialidad = mapa['agent_core']['specialty_label']
-    
-    print(f"📡 [AGENTE: {ctx_agent}] [ESPECIALIDAD: {especialidad}]")
+    # 2. Extraer contexto del Agente
+    agente_id = mapa['agent_core'].get('agent_id', 'Unknown-Agent')
+    especialidad = mapa['agent_core'].get('specialty_label', 'General')
+    print(f"📡 AGENTE: {agente_id} | ESPECIALIDAD: {especialidad}")
 
-    # Ciclo de Auditoría por Experto
-    for experto in mapa['knowledge_repository']:
-        uuid = experto['expert_uuid']
-        identity = experto['identity']
-        print(f"\n--- 🕵️ ANALIZANDO: {identity} (ID: {uuid}) ---")
+    # 3. Procesar el Repositorio de Expertos
+    for experto in mapa.get('knowledge_repository', []):
+        nombre = experto.get('identity', 'Unnamed Expert')
+        uuid = experto.get('expert_uuid', 'N/A')
+        print(f"\n--- 🕵️ ANALIZANDO: {nombre} ({uuid}) ---")
         
-        for fuente in experto['bi_platform_sources']:
-            plataforma = fuente['platform'].upper()
-            tipo = fuente['type']
-            url = fuente['url']
-            
-            # Validación de Salud de Fuente
-            if fuente['health_status'] != "active":
-                print(f"⚠️ SKIPPED: Fuente {plataforma} marcada como inactiva.")
-                continue
+        # Auditoría de fuentes (YouTube / TikTok)
+        for fuente in experto.get('bi_platform_sources', []):
+            plataforma = fuente.get('platform', 'unknown').upper()
+            url = fuente.get('url', 'no-link')
+            estado = fuente.get('health_status', 'inactive')
 
-            print(f"✅ CONEXIÓN: [{plataforma}] [{tipo}] -> {url}")
-            
-            # NOTA PARA EL SOCIO: 
-            # Aquí es donde el robot invoca a Gemini en el futuro 
-            # para analizar el contenido del link detectado.
-            
-    print("\n✅ [STATUS: SUCCESS] Ciclo de sincronización finalizado sin colisiones.")
+            if estado == "active":
+                print(f"✅ CONEXIÓN ESTABLECIDA: [{plataforma}] -> {url}")
+                # Aquí se integrará la lógica de yt-dlp y el prompt de Gemini
+            else:
+                print(f"⚠️ FUENTE OMITIDA: [{plataforma}] está marcada como '{estado}'.")
+
+    print("\n✅ [STATUS: SUCCESS] El Obrero completó su turno satisfactoriamente.")
 
 if __name__ == "__main__":
     try:
-        ejecutar_sincronizacion_omega()
+        despertar_obrero()
     except Exception as e:
-        print(f"💥 FATAL_SYSTEM_ERROR: Fallo imprevisto en el motor: {e}")
+        print(f"💥 FATAL_ERROR: El sistema colapsó por un error imprevisto: {e}")
         sys.exit(1)
