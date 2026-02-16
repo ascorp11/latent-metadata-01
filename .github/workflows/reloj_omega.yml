@@ -1,11 +1,13 @@
-name: Reloj Despertador Omega
+name: Reloj Despertador Omega (Ciclo Humano V16)
 on:
   schedule:
-    - cron: '0 0 * * *' # Ciclo Circadiano Digital (24h)
-  workflow_dispatch:    # Botón de Pánico Manual
+    # Horarios UTC aproximados para simular Mañana (13:00), Tarde (18:00) y Noche (23:00)
+    # Esto evita el patrón robótico de "medianoche exacta".
+    - cron: '0 13,18,23 * * *' 
+  workflow_dispatch: # Botón de Pánico Manual
 
 permissions:
-  contents: write # 🛡️ CRÍTICO: Permiso de escritura en Bóveda
+  contents: write # 🛡️ CRÍTICO: Permiso de escritura para la Bóveda
 
 jobs:
   trabajo_del_obrero:
@@ -14,37 +16,37 @@ jobs:
       - name: 🎒 Despliegue de Mochila (Checkout Full-Depth)
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # CRÍTICO: Recupera historia para comparativa de evolución
+          fetch-depth: 0 # Recupera toda la historia para comparativa de evolución
 
-      - name: 🐍 Configuración de Entorno (Python 3.11 + Caché)
+      - name: 🐍 Configuración de Entorno (Python 3.11)
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip' # ✅ AHORA SÍ FUNCIONA: Lee tu requirements.txt y acelera la carga
+          cache: 'pip' # Aceleración de arranque mediante caché
 
-      - name: 🛠️ Inyección de Dependencias (Desde Lista Maestra)
+      - name: 🛠️ Inyección de Herramientas (Arqueología Digital)
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt # Instala exactamente lo que definiste
+          pip install -r requirements.txt
 
-      - name: ⚡ Ejecución del Protocolo Obrero Omega V13.0
+      - name: ⚡ Ejecución Obrero V16 (Modo Ruleta & Sigilo)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python obrero_omega.py
 
-      - name: 💾 Protocolo de Persistencia y Auto-Guardado
+      - name: 💾 Persistencia de Datos (Auto-Commit)
         run: |
           git config --local user.email "ascorp_bot@github.com"
           git config --local user.name "Obrero Omega Bot"
           
-          # Añadimos explícitamente la Bóveda y los catálogos
+          # Añadimos explícitamente la Bóveda y catálogos
           git add ASCORP_KNOWLEDGE_VAULT/*
           
           # Lógica de Blindaje: Commit solo si hay cambios reales
           if ! git diff --staged --quiet; then
-            git commit -m "📦 OMEGA_SYNC: Actualización de Inteligencia $(date +'%Y-%m-%d')"
+            git commit -m "🧠 SINC V16: Nuevos Hallazgos $(date +'%Y-%m-%d %H:%M')"
             git push
             echo "✅ CAMBIOS GUARDADOS EN LA BÓVEDA."
           else
-            echo "⚠️ SIN NOVEDADES: El Obrero no detectó cambios estructurales hoy."
+            echo "💤 Nada nuevo en este turno. El obrero sigue vigilando."
           fi
