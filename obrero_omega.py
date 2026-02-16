@@ -3,53 +3,95 @@ import json
 import sys
 import time
 import random
+import glob
 from datetime import datetime
 from google import genai
+from google.genai import types
 import yt_dlp
+from PIL import Image
 
 # ==========================================
-# 🧠 CEREBRO: PROMPT MAESTRO V16 (SIN RECORTES - MÁXIMA DENSIDAD)
+# 🧠 CEREBRO: PROMPT MAESTRO V17 (OMNISCIENTE - MÁXIMA DENSIDAD)
 # ==========================================
 PROMPT_MAESTRO = """
-ACTÚA COMO ARQUITECTO DE SISTEMAS DE IA Y AUDITOR TÉCNICO SENIOR PARA EL 'KERNEL 12.0'.
-TU MISIÓN ES DECONSTRUIR EL SIGUIENTE CONTENIDO (METADATA + TRANSCRIPCIÓN) Y GENERAR UN ARTEFACTO DE CONOCIMIENTO PERDURABLE.
+ACTÚA COMO ARQUITECTO DE IA SENIOR PARA EL 'KERNEL 12.7'.
+ANALIZA ESTE CONTENIDO MULTIMODAL (Video Metadata + Imagen Visual + Memoria Histórica).
 
-OBJETIVO: EXTRAER LA LÓGICA PROFUNDA, NO SOLO RESUMIR EL DISCURSO.
+TU MISIÓN: DECONSTRUIR LA LÓGICA, DETECTAR OBSOLESCENCIA Y ESTRUCTURAR CONOCIMIENTO.
 
-ESTRUCTURA DE SALIDA EXIGIDA (MARKDOWN PURO):
+INPUTS DISPONIBLES:
+1. METADATA: Título, transcripción y tags.
+2. VISIÓN: Análisis del Thumbnail/Frame clave (Detecta código, esquemas o texto en pantalla).
+3. MEMORIA EVOLUTIVA: Contexto de archivos previos del experto (Detecta contradicciones).
 
-1.  **🚦 SEMÁFORO DE VIGENCIA:**
-    * Si el contenido tiene > 1 año: "⚠️ [ADVERTENCIA HISTÓRICA]: Conceptos del año [AÑO]. Validar vigencia vs. Estado del Arte 2026."
-    * Si es reciente: "✅ [VIGENTE]: Conocimiento alineado con la vanguardia actual."
+ESTRUCTURA DE SALIDA (MARKDOWN OPTIMIZADO PARA NOTEBOOKLM):
 
-2.  **NIVEL ALFA (SÍNTESIS EJECUTIVA):**
-    * Resumen de alto impacto (Máximo 1 párrafo denso). ¿Qué problema resuelve esto?
+# [TITULO DEL VIDEO]
 
-3.  **NIVEL BETA (HALLAZGOS TÉCNICOS):**
-    * Lista de Herramientas / Librerías / Modelos mencionados.
-    * Métricas clave o benchmarks (si existen).
-    * "Secretos de Oficio": Trucos o heurísticas que el experto menciona de pasada.
+## 🚦 SEMÁFORO DE VIGENCIA & EVOLUCIÓN
+* **Estado:** (✅ VIGENTE / ⚠️ OBSOLETO / 🔄 EN EVOLUCIÓN)
+* **Análisis Evolutivo:** Compara lo dicho en este video con la "Memoria Histórica" adjunta. ¿Ha cambiado de opinión el experto? ¿La tecnología evolucionó?
 
-4.  **NIVEL GAMMA (INGENIERÍA INVERSA):**
-    * Reconstrucción lógica o pseudo-código de lo explicado.
-    * Tutorial paso a paso si el contenido es un "How-to".
+## 1. SÍNTESIS EJECUTIVA (Nivel Alfa)
+Resumen denso de 1 párrafo. Foco en el "Problem-Solution Fit".
 
-5.  **🔗 GRAPHRAG (NODOS DE CONEXIÓN):**
-    * Identifica relaciones semánticas para el Grafo de Conocimiento Futuro.
-    * Formato: `[Concepto A] --tipo_relación--> [Concepto B]`
-    * Ejemplo: `[RAG] --evolucionó_a--> [GraphRAG]`.
+## 2. ANÁLISIS VISUAL & TÉCNICO (Nivel Beta)
+* **Lo que se ve:** Describe diagramas o código mostrados en la imagen adjunta.
+* **Herramientas:** Lista técnica de software/librerías.
+* **Secretos:** Trucos no obvios mencionados.
 
-[KERNEL_UPGRADE_INSTRUCTIONS]: Redacta una instrucción de inyección directa para la base de conocimiento del usuario (Dify/Kernel). ¿Qué regla lógica debe actualizarse con esto?
+## 3. INGENIERÍA INVERSA (Nivel Gamma)
+Explicación paso a paso de la lógica o tutorial. Usa bloques de código si aplica.
 
-RESTRICCIONES:
-* Idioma: Español Técnico.
-* Tono: Profesional, directo, sin "paja" (fluff).
-* Si falta información, declara: "DATOS INSUFICIENTES EN FUENTE".
+## 4. 🔗 GRAPHRAG (NODOS JSON)
+```json
+{
+  "nodos_clave": ["Concepto A", "Concepto B"],
+  "relaciones": [
+{"origen": "Concepto A", "relacion": "mejora_a", "destino": "Concepto B"}
+  ]
+}
+[KERNEL_UPGRADE_INSTRUCTIONS]
+Instrucción directa y atómica para actualizar la lógica del Kernel 12.7.
 """
 
 # ==========================================
 # 🎲 LÓGICA DE CASINO & SEGURIDAD
 # ==========================================
+# ==========================================
+# 🧩 MÓDULOS DE SOPORTE V17 (MEMORIA & ARQUEOLOGÍA)
+# ==========================================
+
+def leer_memoria_evolutiva(ruta_base_experto):
+    """
+    MEMORIA EVOLUTIVA: Escanea archivos anteriores del experto 
+    para que Gemini detecte si ha cambiado de opinión o si la tecnología avanzó.
+    """
+    archivos = glob.glob(f"{ruta_base_experto}/**/*.md", recursive=True)
+    if not archivos: return "Sin memoria histórica previa disponible."
+    
+    # Tomamos fragmentos de los últimos 3 archivos analizados del pasado
+    muestras = sorted(archivos, reverse=True)[:3] 
+    texto_memoria = ""
+    for a in muestras:
+        try:
+            with open(a, 'r', encoding='utf-8') as f:
+                texto_memoria += f"\n--- MEMORIA ({os.path.basename(a)}) ---\n{f.read()[:500]}..."
+        except: continue
+    return texto_memoria
+
+def configurar_yt_dlp(plataforma):
+    """Configuración blindada con Cookies y User-Agent específico."""
+    opciones = {
+        'quiet': True, 'ignoreerrors': True, 'no_warnings': True,
+        'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
+        'extract_flat': True,
+    }
+    if plataforma == 'tiktok':
+        opciones['user_agent'] = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1'
+    else:
+        opciones['user_agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124 Safari/537.36'
+    return opciones
 def pausa_tactica():
     """
     Genera una espera variable entre 60 y 120 segundos.
