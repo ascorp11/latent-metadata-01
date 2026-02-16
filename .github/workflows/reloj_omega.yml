@@ -29,6 +29,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: 🍪 Inyección de Credenciales (Cookies)
+        # Genera el archivo cookies.txt a partir del Secreto configurado en GitHub
+        run: |
+          echo "${{ secrets.YOUTUBE_COOKIES }}" > cookies.txt
+          
       - name: ⚡ Ejecución Obrero V16 (Modo Ruleta & Sigilo)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
