@@ -1,11 +1,11 @@
 name: Reloj Despertador Omega
 on:
   schedule:
-    - cron: '0 0 * * *'
-  workflow_dispatch:
+    - cron: '0 0 * * *' # Sincronización automática cada 24h
+  workflow_dispatch:    # Permite el "Play" manual
 
 permissions:
-  contents: write # 🛡️ CRÍTICO: Permite al obrero guardar hallazgos
+  contents: write # 🛡️ CRÍTICO: Permite al obrero abrir la mochila y guardar hallazgos
 
 jobs:
   trabajo_del_obrero:
@@ -14,29 +14,33 @@ jobs:
       - name: 🎒 Bajando la mochila del socio
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Recupera todo el historial para la comparativa de 6 meses
 
       - name: 🐍 Preparando Python Moderno (3.11)
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip' # Maximiza la velocidad de arranque
+          cache: 'pip' # Maximiza la velocidad de arranque diario
 
       - name: 🛠️ Instalando la Nueva Era de Google GenAI
         run: |
           python -m pip install --upgrade pip
-          pip install google-genai 
+          pip install google-genai # Librería oficial SDK 2026
 
-      - name: ⚡ Ejecutando al Obrero de Élite V12.9.7
+      - name: ⚡ Ejecutando al Obrero de Élite V12.9.9
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python obrero_omega.py
 
-      - name: 💾 Guardando Hallazgos en la Mochila (Auto-Commit)
+      - name: 💾 Guardando Hallazgos en la Mochila (Auto-Commit & Push)
         run: |
           git config --local user.email "ascorp_bot@github.com"
           git config --local user.name "Obrero Omega Bot"
-          # Añadimos solo los archivos nuevos en la bóveda
+          # Agregamos los nuevos archivos de la Bóveda y el catálogo de vigilancia
+          git add ASCORP_KNOWLEDGE_VAULT/*
+          # Solo ejecutamos el guardado si hay nuevos descubrimientos
+          git commit -m "📦 Sincronización Automática Omega V12.9.9: $(date +'%Y-%m-%d')" || echo "Sin hallazgos nuevos hoy"
+          git push
           git add ASCORP_KNOWLEDGE_VAULT/*
           # Solo hacemos commit si hay archivos nuevos para evitar errores
           git commit -m "📦 Sincronización Automática Omega: $(date +'%Y-%m-%d')" || echo "Sin cambios detectados"
