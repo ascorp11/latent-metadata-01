@@ -1,47 +1,51 @@
 name: Reloj Despertador Omega
 on:
   schedule:
-    - cron: '0 0 * * *' # Sincronización automática cada 24h
-  workflow_dispatch:    # Permite el "Play" manual
+    - cron: '0 0 * * *' # Sincronización diaria automática (Ciclo Circadiano Digital)
+  workflow_dispatch:    # Permite el disparo manual de emergencia
 
 permissions:
-  contents: write # 🛡️ CRÍTICO: Permite al obrero abrir la mochila y guardar hallazgos
+  contents: write # 🛡️ CRÍTICO: Permiso de escritura indispensable para la Bóveda
 
 jobs:
   trabajo_del_obrero:
     runs-on: ubuntu-latest
     steps:
-      - name: 🎒 Bajando la mochila del socio
+      - name: 🎒 Despliegue de Mochila (Checkout Full-Depth)
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Recupera todo el historial para la comparativa de 6 meses
+          fetch-depth: 0 # CRÍTICO: Recupera toda la historia para que el Obrero pueda comparar evolución (6 meses)
 
-      - name: 🐍 Preparando Python Moderno (3.11)
+      - name: 🐍 Configuración de Entorno de Ejecución (Python 3.11)
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip' # Maximiza la velocidad de arranque diario
+          python-version: '3.11' # Estándar 2026 para evitar advertencias de deprecación
+          cache: 'pip' # Aceleración de arranque mediante caché
 
-      - name: 🛠️ Instalando la Nueva Era de Google GenAI
+      - name: 🛠️ Inyección de Dependencias (Google GenAI SDK)
         run: |
           python -m pip install --upgrade pip
-          pip install google-genai # Librería oficial SDK 2026
+          pip install google-genai # Librería oficial de próxima generación
 
-      - name: ⚡ Ejecutando al Obrero de Élite V12.9.9
+      - name: ⚡ Ejecución del Protocolo Obrero Omega V13.0
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python obrero_omega.py
 
-      - name: 💾 Guardando Hallazgos en la Mochila (Auto-Commit & Push)
+      - name: 💾 Protocolo de Persistencia y Auto-Guardado
         run: |
           git config --local user.email "ascorp_bot@github.com"
           git config --local user.name "Obrero Omega Bot"
-          # Agregamos los nuevos archivos de la Bóveda y el catálogo de vigilancia
+          
+          # Añadimos explícitamente la Bóveda y los catálogos de vigilancia
           git add ASCORP_KNOWLEDGE_VAULT/*
-          # Solo ejecutamos el guardado si hay nuevos descubrimientos
-          git commit -m "📦 Sincronización Automática Omega V12.9.9: $(date +'%Y-%m-%d')" || echo "Sin hallazgos nuevos hoy"
-          git push
-          git add ASCORP_KNOWLEDGE_VAULT/*
-          # Solo hacemos commit si hay archivos nuevos para evitar errores
-          git commit -m "📦 Sincronización Automática Omega: $(date +'%Y-%m-%d')" || echo "Sin cambios detectados"
-          git push
+          
+          # Lógica de Blindaje: Solo hacer commit si hay cambios reales en el 'staged area'
+          # Esto evita que el workflow falle (cruz roja) cuando no hay videos nuevos.
+          if ! git diff --staged --quiet; then
+            git commit -m "📦 OMEGA_SYNC_${{ github.run_number }}: Actualización de Inteligencia $(date +'%Y-%m-%d')"
+            git push
+            echo "✅ CAMBIOS GUARDADOS EN LA BÓVEDA."
+          else
+            echo "⚠️ SIN NOVEDADES: El Obrero no detectó cambios estructurales hoy. El sistema permanece estable."
+          fi
