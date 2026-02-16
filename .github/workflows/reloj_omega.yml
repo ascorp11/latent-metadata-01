@@ -1,40 +1,43 @@
 name: Reloj Despertador Omega
 on:
   schedule:
-    - cron: '0 0 * * *' # Sincronización automática cada 24h
-  workflow_dispatch: # Botón manual para el Socio
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write # 🛡️ CRÍTICO: Permite al obrero guardar hallazgos
 
 jobs:
   trabajo_del_obrero:
     runs-on: ubuntu-latest
-    # CAPA DE PODER: Permite al obrero escribir en la mochila
-    permissions:
-      contents: write
-    
     steps:
-      - name: 📥 Bajando la mochila del socio
+      - name: 🎒 Bajando la mochila del socio
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: 🐍 Preparando Python
+      - name: 🐍 Preparando Python Moderno (3.11)
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
+          cache: 'pip' # Maximiza la velocidad de arranque
 
-      - name: 📦 Instalando Herramientas de Ingesta (YT + TT)
+      - name: 🛠️ Instalando la Nueva Era de Google GenAI
         run: |
-          pip install google-generativeai yt-dlp
-          # yt-dlp es la herramienta que permite "mirar" dentro de YouTube y TikTok
+          python -m pip install --upgrade pip
+          pip install google-genai 
 
-      - name: ⚡ Ejecutando al Obrero Multimodal
+      - name: ⚡ Ejecutando al Obrero de Élite V12.9.7
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python obrero_omega.py
 
-      - name: 💾 Guardando Hallazgos en la Mochila
+      - name: 💾 Guardando Hallazgos en la Mochila (Auto-Commit)
         run: |
-          git config --global user.name "Obrero Omega Bot"
-          git config --global user.name "omega-bot@github.com"
-          git add .
-          git commit -m "🤖 Actualización de Conocimiento: Barrido 24h completado" || echo "Sin cambios detectados"
+          git config --local user.email "ascorp_bot@github.com"
+          git config --local user.name "Obrero Omega Bot"
+          # Añadimos solo los archivos nuevos en la bóveda
+          git add ASCORP_KNOWLEDGE_VAULT/*
+          # Solo hacemos commit si hay archivos nuevos para evitar errores
+          git commit -m "📦 Sincronización Automática Omega: $(date +'%Y-%m-%d')" || echo "Sin cambios detectados"
           git push
