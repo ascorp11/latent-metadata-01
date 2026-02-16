@@ -1,0 +1,10 @@
+# --- MOTOR DE INTELIGENCIA GOOGLE (SDK 2026) ---
+google-genai>=0.3.0
+
+# --- UTILIDADES DE SISTEMA Y RED ---
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# --- NOTA PARA EL KERNEL ---
+# Este archivo permite que GitHub Actions use caché ('pip')
+# y acelere el arranque del Obrero Omega en un 40%.
