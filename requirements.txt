@@ -5,6 +5,7 @@ google-genai>=0.3.0
 yt-dlp>=2025.01.01  # Permite escanear canales enteros y filtrar por fechas
 requests>=2.31.0    # Conectividad base
 python-dotenv>=1.0.0
+pillow>=10.0.0      # 👁️ VISIÓN: Procesa imágenes/frames para análisis multimodal
 
 # --- NOTA TÉCNICA ---
 # yt-dlp es el motor que permite diferenciar entre 'Shorts', 'Lives' y 'Videos Largos'.
