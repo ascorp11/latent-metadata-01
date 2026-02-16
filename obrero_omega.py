@@ -114,135 +114,167 @@ def seleccionar_expertos_ruleta(mapa_completo, max_por_turno=3):
     print(f"🎰 [RULETA] Expertos seleccionados para este turno: {[e['identity'] for e in seleccionados]}")
     return seleccionados
 
-def obtener_candidatos_mixtos(canal_url, plataforma):
+def obtener_candidatos_mixtos(canal_url, plataforma, ruta_base_expertos, nombre_experto):
     """
-    Extrae metadata de los últimos videos sin descargar el video pesado.
-    Soporta YouTube y (experimentalmente) TikTok.
+    ESTRATEGIA DE PINZA CRONOLÓGICA (Diagrama V17):
+    1. Toma la Vanguardia (Lo más nuevo).
+    2. Busca el video más cercano al presente que falte en la Bóveda (Rev. 01, 02...).
     """
-    # Configuración blindada para yt-dlp
-    opciones = {
-        'quiet': True,
-        'extract_flat': True, # Solo lista, no descarga
-        'ignoreerrors': True,
-        'playlistend': 5, # Miramos los últimos 5 para encontrar novedades
-        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
+    opciones = configurar_yt_dlp(plataforma)
+    print(f"📡 Escaneando Matriz Temporal ({plataforma})...")
     
-    print(f"📡 Escaneando frecuencia ({plataforma}): {canal_url}")
     try:
         with yt_dlp.YoutubeDL(opciones) as ydl:
             info = ydl.extract_info(canal_url, download=False)
-            if 'entries' in info:
-                # Retornamos la lista de videos encontrados
-                return list(info['entries'])
+            if not info or 'entries' not in info: return []
+            
+            todos = list(info['entries'])
+            if not todos: return []
+            
+            objetivos = []
+            # --- PASO 1: VANGUARDIA (Prioridad Absoluta) ---
+            objetivos.append(todos[0])
+            
+            # --- PASO 2: ARQUEOLOGÍA SECUENCIAL (Buscar el primer hueco) ---
+            print("🏛️ Iniciando Arqueología Secuencial (Búsqueda de Revisiones)...")
+            for vid in todos[1:]:
+                # Construimos la ruta de donde DEBERÍA estar el archivo
+                fecha_str = vid.get('upload_date', '20260101')
+                anio = fecha_str[:4]
+                titulo_clean = "".join([c if c.isalnum() else "_" for c in vid.get('title', 'video')])[:50]
+                
+                # Ruta: Bóveda / Plataforma / Experto / Año / Archivo.md
+                ruta_check = f"{ruta_base_expertos}/{plataforma}/{nombre_experto.replace(' ', '_')}/{anio}/{fecha_str}_{titulo_clean}.md"
+                
+                if not os.path.exists(ruta_check):
+                    objetivos.append(vid)
+                    print(f"🔎 [HUECO DETECTADO]: El video '{vid.get('title')}' será la revisión de este turno.")
+                    break # Solo tomamos uno para respetar el tiempo de 22 min.
+            
+            return objetivos
     except Exception as e:
-        print(f"⚠️ Error escaneando canal: {e}")
+        print(f"⚠️ Error en Pinza Cronológica: {e}")
         return []
-    return []
 
-def descargar_metadata_full(video_url):
-    """Descarga descripción, tags y subtítulos automáticos para el análisis."""
+def descargar_inteligencia_multimodal(video_url):
+    """
+    Extrae Metadata técnica y activa la VISIÓN descargando el Thumbnail.
+    """
     opciones = {
-        'quiet': True,
-        'skip_download': True,
-        'writeautomaticsub': True,
-        'sub_lang': 'en,es',
-        'outtmpl': '%(id)s' # Nombre temporal
+        'quiet': True, 'skip_download': True,
+        'writeautomaticsub': True, 'sub_lang': 'en,es',
+        'writethumbnail': True, # 👁️ ACTIVAR VISIÓN
+        'outtmpl': 'temp_vision', # Nombre temporal para la imagen
+        'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None
     }
+    
+    # Limpiamos rastros visuales previos
+    for f in glob.glob("temp_vision*"): 
+        try: os.remove(f)
+        except: pass
+
     with yt_dlp.YoutubeDL(opciones) as ydl:
-        return ydl.extract_info(video_url, download=False)
+        info = ydl.extract_info(video_url, download=True) # download=True para bajar la foto
+        
+        # Identificamos el archivo de imagen bajado
+        imagen_path = None
+        for ext in ['jpg', 'webp', 'png', 'jpeg']:
+            if os.path.exists(f"temp_vision.{ext}"):
+                imagen_path = f"temp_vision.{ext}"
+                break
+        
+        return info, imagen_path
 
 # ==========================================
-# 🚀 MOTOR PRINCIPAL OMEGA V16
+# 🚀 MOTOR PRINCIPAL OMEGA V17.1 (OMNISCIENTE)
 # ==========================================
 def ejecutar_obrero():
-    print(f"🚀 [SINC V16] Iniciando Protocolo Titán | Estrategia: Ruleta & Sigilo")
+    print(f"🚀 [SINC V17.1] Iniciando Protocolo Omnisciente | Fábrica de Expertos")
     
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key: sys.exit("❌ ERROR: API KEY no encontrada")
     
     client = genai.Client(api_key=api_key)
     
-    # Cargar Mapa
+    # Cargar Mapa de Expertos
     try:
         with open('specialties/expert_nexus_01.json', 'r', encoding='utf-8') as f:
             mapa = json.load(f)
     except Exception as e:
         sys.exit(f"❌ Error leyendo el Mapa JSON: {e}")
 
-    # 1. SELECCIÓN DE OBJETIVOS (RULETA)
+    # 1. SELECCIÓN DE OBJETIVOS (RULETA DE CASINO)
     expertos_del_turno = seleccionar_expertos_ruleta(mapa, max_por_turno=3)
 
     for experto in expertos_del_turno:
         nombre = experto['identity']
-        print(f"\n--- 🕵️ PROCESANDO OBJETIVO: {nombre} ---")
+        # --- MEJORA SEMÁNTICA: Especialidad Dinámica ---
+        # Si no existe el campo 'specialty' en el JSON, usa 'IA' por defecto.
+        especialidad = experto.get('specialty', 'IA').replace(' ', '_').upper()
+        ruta_base_especialidad = f"ASCORP_KNOWLEDGE_VAULT/{especialidad}"
+        
+        print(f"\n--- 🕵️ OBJETIVO: {nombre} | RAMA: {especialidad} ---")
         
         for fuente in experto.get('bi_platform_sources', []):
             if fuente.get('type') != 'channel_root': continue
             
-            # 2. ESCANEO DE VANGUARDIA
-            candidatos = obtener_candidatos_mixtos(fuente['url'], fuente['platform'])
-            
-            # Procesamos MÁXIMO 2 videos por experto en este turno (1 nuevo + 1 respaldo)
-            # para respetar el presupuesto de tiempo.
-            contador_videos = 0
+            # 2. ESCANEO CON PINZA CRONOLÓGICA (Dibujo V17: Vanguardia + Huecos)
+            candidatos = obtener_candidatos_mixtos(fuente['url'], fuente['platform'], ruta_base_especialidad, nombre)
             
             for vid in candidatos:
-                if not vid or contador_videos >= 2: break
-                
                 video_id = vid.get('id')
                 if not video_id: continue
                 
-                # Construcción de URL según plataforma
-                if fuente['platform'] == 'youtube':
-                    video_url = f"https://www.youtube.com/watch?v={video_id}"
-                else:
-                    video_url = vid.get('url', vid.get('webpage_url'))
+                video_url = f"https://www.youtube.com/watch?v={video_id}" if fuente['platform'] == 'youtube' else vid.get('url')
 
-                # 3. VERIFICACIÓN DE EXISTENCIA (Estructura de Carpetas por Año)
+                # 3. RUTA DINÁMICA POR AÑO
                 fecha_str = vid.get('upload_date', datetime.now().strftime('%Y%m%d'))
                 año = fecha_str[:4]
-                titulo_clean = "".join([c if c.isalnum() else "_" for c in vid.get('title', 'video_sin_nombre')])[:50]
+                titulo_clean = "".join([c if c.isalnum() else "_" for c in vid.get('title', 'video')])[:50]
                 
-                ruta_final = f"ASCORP_KNOWLEDGE_VAULT/BASE_DE_CONOCIMIENTO_IA/{fuente['platform']}/{nombre.replace(' ', '_')}/{año}"
+                ruta_final = f"{ruta_base_especialidad}/{fuente['platform']}/{nombre.replace(' ', '_')}/{año}"
                 archivo_md = f"{ruta_final}/{fecha_str}_{titulo_clean}.md"
                 
                 if os.path.exists(archivo_md):
-                    print(f"⏭️  [SALTANDO] Ya existe en Bóveda: {vid.get('title')}")
                     continue
                 
-                # 4. EXTRACCIÓN Y ANÁLISIS (Si es contenido nuevo)
+                # 4. EXTRACCIÓN MULTIMODAL (METADATA + VISIÓN)
                 os.makedirs(ruta_final, exist_ok=True)
-                print(f"🧠 [ANALIZANDO] {vid.get('title')}...")
+                print(f"🧠 [ANALIZANDO V17.1] {vid.get('title')}...")
                 
                 try:
-                    info_rica = descargar_metadata_full(video_url)
-                    descripcion = info_rica.get('description', 'Sin descripción')
-                    tags = info_rica.get('tags', [])
+                    # Bajamos metadata e imagen (Ojos activos)
+                    info_rica, imagen_path = descargar_inteligencia_multimodal(video_url)
                     
-                    # Semáforo Temporal Previo
+                    # 5. MEMORIA EVOLUTIVA (Leer pasado histórico)
+                    ruta_memoria = f"{ruta_base_especialidad}/{fuente['platform']}/{nombre.replace(' ', '_')}"
+                    memoria_pasada = leer_memoria_evolutiva(ruta_memoria)
+                    
+                    # 6. ENSAMBLAJE DEL PROMPT OMNISCIENTE
                     anio_video = int(fecha_str[:4])
-                    anio_actual = datetime.now().year
-                    contexto_temporal = ""
-                    if anio_video < (anio_actual - 1):
-                        contexto_temporal = f"⚠️ ALERTA: Este video es del {anio_video}. Verificar obsolescencia."
-
-                    # Inyección al Modelo
-                    full_prompt = f"{PROMPT_MAESTRO}\n\n--- METADATA ---\nTITULO: {vid.get('title')}\nFECHA: {fecha_str}\nTAGS: {tags}\nDESCRIPCIÓN/TRANSCRIPT: {descripcion}\nURL: {video_url}\n{contexto_temporal}"
+                    aviso_tempo = f"⚠️ [CONTENIDO DEL {anio_video}]" if anio_video < 2025 else "✅ [VANGUARDIA]"
                     
+                    full_prompt = f"{PROMPT_MAESTRO}\n\n--- INPUTS DE CONTEXTO ---\nESPECIALIDAD: {especialidad}\n{aviso_tempo}\nMEMORIA HISTÓRICA: {memoria_pasada}\n\nMETADATA:\n{info_rica.get('description', '')}\nURL: {video_url}"
+                    
+                    # Llamada Multimodal a Gemini
+                    inputs_gemini = [full_prompt]
+                    if imagen_path and os.path.exists(imagen_path):
+                        try:
+                            img = Image.open(imagen_path)
+                            inputs_gemini.append(img)
+                        except:
+                            print("⚠️ Imagen dañada, procesando solo como audio/texto.")
+
                     response = client.models.generate_content(
                         model='gemini-1.5-flash',
-                        contents=full_prompt
+                        contents=inputs_gemini
                     )
                     
-                    # 5. GUARDADO BLINDADO
+                    # 7. GUARDADO EN BÓVEDA
                     with open(archivo_md, 'w', encoding='utf-8') as f:
-                        f.write(f"# {vid.get('title')}\n\nLink: {video_url}\nFecha: {fecha_str}\n\n{response.text}")
+                        f.write(f"# {vid.get('title')}\n\n{aviso_tempo}\nLink: {video_url}\nEspecialidad: {especialidad}\n\n{response.text}")
                     
-                    print(f"✅ [GUARDADO] {archivo_md}")
-                    contador_videos += 1
-                    
-                    # 6. PAUSA DE SEGURIDAD (Jitter)
+                    print(f"✅ [BÓVEDA ACTUALIZADA]: {archivo_md}")
                     pausa_tactica()
                     
                 except Exception as e:
