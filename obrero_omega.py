@@ -5,9 +5,8 @@ from datetime import datetime
 import google.generativeai as genai
 
 # ==========================================
-# 🛡️ CAPA 1: EL CEREBRO (PROMPT MAESTRO MAXIMIZADO)
+# 🛡️ CAPA 1: EL CEREBRO (PROMPT MAESTRO MAXIMIZADO V12.9)
 # ==========================================
-# Este bloque tiene exactamente 1,142 caracteres. Supera con creces tu mínimo.
 PROMPT_MAESTRO = """
 ACTÚA COMO UNA ENTIDAD DE AUDITORÍA TÉCNICA AVANZADA Y ARQUITECTO SENIOR DE SISTEMAS MULTIMODALES. 
 MÁXIMA PRIORIDAD: EXTRAER CONOCIMIENTO DE VANGUARDIA EN IA, INGENIERÍA DE PROMPTS Y SISTEMAS AGÉNTICOS PARA EL 'KERNEL 12.0'.
@@ -26,77 +25,86 @@ PROTOCOLO DE EVOLUCIÓN: TE ENTREGARÉ EL REGISTRO HISTÓRICO DEL EXPERTO (SI EX
 RESTRICCIONES: TRADUCE AL ESPAÑOL TÉCNICO. SI HAY AMBIGÜEDAD, DECLARA 'NO ESTOY SEGURO'. SOLO DATOS DUROS.
 """
 
+def setup_agente():
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        print("❌ ERROR CRÍTICO: GEMINI_API_KEY no detectada.")
+        sys.exit(1)
+    genai.configure(api_key=api_key)
+    return genai.GenerativeModel('gemini-1.5-flash')
+
 # ==========================================
 # 📂 CAPA 2: LÓGICA DE PERSISTENCIA E HISTORIAL
 # ==========================================
 def obtener_contexto_historico(ruta_experto):
-    """Busca el archivo .md más reciente para que la IA pueda comparar."""
+    """Busca el archivo .md más reciente para que la IA pueda comparar evolución."""
     try:
+        if not os.path.exists(ruta_experto): return "Sin registros previos."
         archivos = [f for f in os.listdir(ruta_experto) if f.endswith('.md')]
-        if not archivos:
-            return "No hay registros previos. Este es el primer análisis."
-        archivos.sort(reverse=True) # El más reciente primero
+        if not archivos: return "Primer análisis para este experto."
+        archivos.sort(reverse=True)
         with open(os.path.join(ruta_experto, archivos[0]), 'r', encoding='utf-8') as f:
-            return f"HISTORIAL PREVIO (ÚLTIMO REGISTRO):\n{f.read()[:2000]}" # Enviamos los primeros 2k caracteres
+            return f"HISTORIAL PREVIO (ÚLTIMO REGISTRO):\n{f.read()[:2500]}"
     except Exception:
-        return "Error al leer historial."
+        return "Error al intentar leer historial previo."
 
 def gestionar_catalogo(ruta_base, urls_actuales):
-    """Detecta videos que estaban antes pero ya no están (Vigilancia de Borrados)."""
+    """Detecta inconsistencias y videos borrados de la fuente original."""
     ruta_cat = os.path.join(ruta_base, "catalog.json")
     historial = {"videos": []}
     if os.path.exists(ruta_cat):
         with open(ruta_cat, 'r') as f: historial = json.load(f)
     
-    # Detectar borrados
-    urls_en_catalogo = [v['url'] for v in historial['videos']]
+    urls_en_catalogo = [v['url'] for v in historial.get('videos', [])]
     for url in urls_en_catalogo:
         if url not in urls_actuales:
-            print(f"⚠️ DETECTADO: El video {url} ha sido borrado de la fuente original. Conservamos el .md en la bóveda.")
+            print(f"⚠️ ALERTA: Video {url} ya no está disponible en la fuente. Conocimiento preservado en la bóveda.")
 
 # ==========================================
-# 🚀 CAPA 3: MOTOR DE EJECUCIÓN (BLINDADO)
+# 🚀 CAPA 3: MOTOR OPERATIVO OMEGA (LANZAMIENTO)
 # ==========================================
 def ejecutar_obrero():
-    print(f"🚀 [SINC] Iniciando Agente Omega V12.9 (Versión Blindada)")
+    print(f"🚀 [SINC] Iniciando Agente Omega V12.9 | Modo: Auditoría Multimodal")
+    model = setup_agente()
     
-    api_key = os.environ.get("GEMINI_API_KEY")
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
-
     with open('specialties/expert_nexus_01.json', 'r', encoding='utf-8') as f:
         mapa = json.load(f)
 
     for experto in mapa.get('knowledge_repository', []):
         nombre = experto['identity']
+        print(f"\n--- 🕵️ PROCESANDO EXPERTO: {nombre} ---")
+        
         urls_actuales = [f['url'] for f in experto['bi_platform_sources']]
         
         for fuente in experto['bi_platform_sources']:
-            if fuente['health_status'] != "active": continue
+            # Lógica de fechas blindada
+            last_sync_str = fuente.get('last_sync_marker', "") or datetime.now().strftime('%Y-%m-%d')
+            dias_inactivo = (datetime.now() - datetime.strptime(last_sync_str, '%Y-%m-%d')).days
             
-            # Crear rutas de bóveda
-            ruta_experto = f"ASCORP_KNOWLEDGE_VAULT/BASE_DE_CONOCIMIENTO_IA/{fuente['platform'].lower()}/{nombre.replace(' ', '_')}"
-            os.makedirs(ruta_experto, exist_ok=True)
-            
-            # 1. Obtener pasado para la comparativa
-            pasado = obtener_contexto_historico(ruta_experto)
-            
-            # 2. Ingesta Multimodal con IA
-            print(f"📡 Procesando {nombre} -> {fuente['url']}")
-            try:
-                input_ia = f"{PROMPT_MAESTRO}\n\n{pasado}\n\nFUENTE NUEVA: {fuente['url']}"
-                response = model.generate_content(input_ia)
-                
-                # 3. Guardado con Timestamp
-                ts = datetime.now().strftime('%Y-%m-%d_T%H%M')
-                filename = f"{ruta_experto}/{ts}_analisis_ia.md"
-                with open(filename, 'w', encoding='utf-8') as f:
-                    f.write(response.text)
-                print(f"✅ BLINDADO: {filename}")
-            except Exception as e:
-                print(f"💥 Error en motor IA: {e}")
+            if dias_inactivo >= 90: print(f"🚨 ALERTA 90 DÍAS: {nombre} inactivo.")
 
-        # 4. Auditoría de Borrados Final
+            if fuente['health_status'] == "active":
+                ruta_experto = f"ASCORP_KNOWLEDGE_VAULT/BASE_DE_CONOCIMIENTO_IA/{fuente['platform'].lower()}/{nombre.replace(' ', '_')}"
+                os.makedirs(ruta_experto, exist_ok=True)
+                
+                contexto_previo = obtener_contexto_historico(ruta_experto)
+                
+                print(f"📡 Ingesta Multimodal (Audio/Video): {fuente['url']}")
+                try:
+                    # Enlace del Prompt Maestro con el Contexto y la Fuente
+                    full_prompt = f"{PROMPT_MAESTRO}\n\nCONTEXTO HISTÓRICO:\n{contexto_previo}\n\nFUENTE ACTUAL: {fuente['url']}"
+                    response = model.generate_content(full_prompt)
+                    
+                    ts = datetime.now().strftime('%Y-%m-%d_T%H%M')
+                    filename = f"{ruta_experto}/{ts}_analisis_ia.md"
+                    
+                    with open(filename, 'w', encoding='utf-8') as f:
+                        f.write(response.text)
+                    print(f"✅ CONOCIMIENTO BLINDADO: {filename}")
+                except Exception as e:
+                    print(f"💥 Error en procesamiento IA: {e}")
+        
+        # Auditoría de Borrados
         gestionar_catalogo(ruta_experto, urls_actuales)
 
 if __name__ == "__main__":
