@@ -1,147 +1,210 @@
 import os
 import json
 import sys
+import time
+import random
 from datetime import datetime
 from google import genai
+import yt_dlp
 
 # ==========================================
-# 🛡️ CAPA 1: EL CEREBRO (PROMPT MAESTRO DE ALTA DENSIDAD +1300 CARACTERES)
+# 🧠 CEREBRO: PROMPT MAESTRO V16 (SIN RECORTES - MÁXIMA DENSIDAD)
 # ==========================================
 PROMPT_MAESTRO = """
-ACTÚA COMO UNA ENTIDAD DE AUDITORÍA TÉCNICA AVANZADA Y ARQUITECTO SENIOR DE SISTEMAS MULTIMODALES PARA EL ESCALAFÓN DEL 1% TOP MUNDIAL EN INTELIGENCIA ARTIFICIAL. TU MISIÓN ES LA ALIMENTACIÓN, BLINDAJE Y OPTIMIZACIÓN CONTINUA DEL 'KERNEL 12.0'.
+ACTÚA COMO ARQUITECTO DE SISTEMAS DE IA Y AUDITOR TÉCNICO SENIOR PARA EL 'KERNEL 12.0'.
+TU MISIÓN ES DECONSTRUIR EL SIGUIENTE CONTENIDO (METADATA + TRANSCRIPCIÓN) Y GENERAR UN ARTEFACTO DE CONOCIMIENTO PERDURABLE.
 
-ANÁLISIS MULTIMODAL INTEGRAL: PROCESA EL AUDIO (ENTONACIÓN, ÉNFASIS, PAUSAS ESTRUCTURALES) Y EL VIDEO (RECONOCIMIENTO DE CÓDIGO EN PANTALLA, DIAGRAMAS DE FLUJO, LÁMINAS TÉCNICAS) COMO UNA UNIDAD SEMÁNTICA ÚNICA. EXTRAE LA LÓGICA SUBYACENTE, NO SOLO EL DISCURSO.
+OBJETIVO: EXTRAER LA LÓGICA PROFUNDA, NO SOLO RESUMIR EL DISCURSO.
 
-PROTOCOLO DE SALIDA EXIGIDO (PEDAGOGÍA TÉCNICA):
-1. NIVEL ALFA (CONCENTRADO): SÍNTESIS EJECUTIVA DE ALTO IMPACTO EN UN SOLO PÁRRAFO QUE DEFINA LA RELEVANCIA TÉCNICA DEL HALLAZGO PARA EL KERNEL 12.0.
-2. NIVEL BETA (INTERMEDIO): TABLA COMPARATIVA DE HERRAMIENTAS/TÉCNICAS VS. EL ESTADO DEL ARTE ACTUAL. LISTADO DE HALLAZGOS CON MÉTRICAS Y VARIABLES CLAVE.
-3. NIVEL GAMMA (DESARROLLADO): TUTORIAL PASO A PASO CON ESTILO DE APRENDIZAJE GUIADO, INCLUYENDO BLOQUES DE CÓDIGO OPTIMIZADOS Y JUSTIFICACIÓN PEDAGÓGICA.
+ESTRUCTURA DE SALIDA EXIGIDA (MARKDOWN PURO):
 
-PROTOCOLO DE EVOLUCIÓN: COMPARA EL CONTENIDO ACTUAL CON EL HISTORIAL DE LOS ÚLTIMOS 6 MESES QUE SE TE ADJUNTA. SI DETECTAS CONTRADICCIONES, DETERMINA SI ES UNA EVOLUCIÓN TECNOLÓGICA (VALIDANDO CONTRA DEEPMIND, GOOGLE LABS, OPENAI) O UN ERROR CONCEPTUAL DEL EXPERTO.
+1.  **🚦 SEMÁFORO DE VIGENCIA:**
+    * Si el contenido tiene > 1 año: "⚠️ [ADVERTENCIA HISTÓRICA]: Conceptos del año [AÑO]. Validar vigencia vs. Estado del Arte 2026."
+    * Si es reciente: "✅ [VIGENTE]: Conocimiento alineado con la vanguardia actual."
 
-[KERNEL_UPGRADE_INSTRUCTIONS]: REDACTA INSTRUCCIONES DE INYECCIÓN DIRECTA PARA EL KERNEL 12.0. INDICA QUÉ LÓGICA DEBE SER REEMPLAZADA O AJUSTADA PARA EVITAR LA OBSOLESCENCIA.
+2.  **NIVEL ALFA (SÍNTESIS EJECUTIVA):**
+    * Resumen de alto impacto (Máximo 1 párrafo denso). ¿Qué problema resuelve esto?
 
-RESTRICCIONES: IDIOMA ESPAÑOL TÉCNICO. SI EL AUDIO/VIDEO ES DIFUSO, DECLARA 'NO ESTOY SEGURO'. PROHIBIDA LA VERBORREA. SOLO DATOS DUROS.
+3.  **NIVEL BETA (HALLAZGOS TÉCNICOS):**
+    * Lista de Herramientas / Librerías / Modelos mencionados.
+    * Métricas clave o benchmarks (si existen).
+    * "Secretos de Oficio": Trucos o heurísticas que el experto menciona de pasada.
+
+4.  **NIVEL GAMMA (INGENIERÍA INVERSA):**
+    * Reconstrucción lógica o pseudo-código de lo explicado.
+    * Tutorial paso a paso si el contenido es un "How-to".
+
+5.  **🔗 GRAPHRAG (NODOS DE CONEXIÓN):**
+    * Identifica relaciones semánticas para el Grafo de Conocimiento Futuro.
+    * Formato: `[Concepto A] --tipo_relación--> [Concepto B]`
+    * Ejemplo: `[RAG] --evolucionó_a--> [GraphRAG]`.
+
+[KERNEL_UPGRADE_INSTRUCTIONS]: Redacta una instrucción de inyección directa para la base de conocimiento del usuario (Dify/Kernel). ¿Qué regla lógica debe actualizarse con esto?
+
+RESTRICCIONES:
+* Idioma: Español Técnico.
+* Tono: Profesional, directo, sin "paja" (fluff).
+* Si falta información, declara: "DATOS INSUFICIENTES EN FUENTE".
 """
 
 # ==========================================
-# 📂 CAPA 2: SISTEMA DE VIGILANCIA Y PERSISTENCIA (LÓGICA BLINDADA)
+# 🎲 LÓGICA DE CASINO & SEGURIDAD
 # ==========================================
-def obtener_historial_completo(ruta_exp):
+def pausa_tactica():
     """
-    Recupera el contexto de los últimos 6 meses para permitir la comparativa evolutiva.
-    Maneja excepciones de lectura para evitar interrupciones del flujo.
+    Genera una espera variable entre 60 y 120 segundos.
+    Esto rompe el patrón de bot y protege la cuenta IP de GitHub.
     """
-    try:
-        if not os.path.exists(ruta_exp): return "No hay registros previos. Primer ciclo de ingesta."
-        archivos = sorted([f for f in os.listdir(ruta_exp) if f.endswith('.md')], reverse=True)
-        if not archivos: return "Primer registro para este experto."
-        with open(os.path.join(ruta_exp, archivos[0]), 'r', encoding='utf-8') as f:
-            return f"--- HISTORIAL DE EVOLUCIÓN DETECTADO (CONTEXTO PREVIO) ---\n{f.read()[:3000]}"
-    except Exception as e:
-        return f"Contexto histórico no accesible (Error I/O): {str(e)}"
+    segundos = random.randint(60, 120)
+    print(f"🛡️ [SIGILO] Pausa táctica de {segundos} segundos para evitar detección...")
+    time.sleep(segundos)
 
-def auditoria_de_borrados(ruta_exp, urls_vivas):
+def seleccionar_expertos_ruleta(mapa_completo, max_por_turno=3):
     """
-    Verifica la integridad de la fuente comparando el catálogo histórico con la realidad actual.
-    Si una URL desaparece, emite una alerta de integridad pero MANTIENE el conocimiento guardado.
+    Selecciona aleatoriamente 'max_por_turno' expertos para procesar hoy.
+    Esto asegura que en 22 minutos no intentemos procesar todo el internet.
     """
-    ruta_cat = os.path.join(ruta_exp, "catalog.json")
-    historial_videos = []
+    lista_expertos = mapa_completo.get('knowledge_repository', [])
+    if len(lista_expertos) <= max_por_turno:
+        return lista_expertos
     
-    # 1. Fase de Auditoría: Buscar discrepancias
-    if os.path.exists(ruta_cat):
-        try:
-            with open(ruta_cat, 'r') as f:
-                data = json.load(f)
-                historial_videos = data.get('videos', [])
-                for v in historial_videos:
-                    if v['url'] not in urls_vivas:
-                        print(f"🚨 ALERTA DE INTEGRIDAD: Contenido eliminado en origen -> {v['url']}")
-                        print("   (El conocimiento extraído permanece seguro en la Bóveda ASCORP)")
-        except json.JSONDecodeError:
-            print("⚠️ Advertencia: Catálogo corrupto, se generará uno nuevo.")
-    
-    # 2. Fase de Persistencia: Actualizar el catálogo con la realidad actual
-    nuevo_catalogo = {
-        "ultima_actualizacion": datetime.now().isoformat(),
-        "total_activos": len(urls_vivas),
-        "videos": [{"url": u, "detectado": datetime.now().isoformat()} for u in urls_vivas]
+    seleccionados = random.sample(lista_expertos, k=max_por_turno)
+    print(f"🎰 [RULETA] Expertos seleccionados para este turno: {[e['identity'] for e in seleccionados]}")
+    return seleccionados
+
+def obtener_candidatos_mixtos(canal_url, plataforma):
+    """
+    Extrae metadata de los últimos videos sin descargar el video pesado.
+    Soporta YouTube y (experimentalmente) TikTok.
+    """
+    # Configuración blindada para yt-dlp
+    opciones = {
+        'quiet': True,
+        'extract_flat': True, # Solo lista, no descarga
+        'ignoreerrors': True,
+        'playlistend': 5, # Miramos los últimos 5 para encontrar novedades
+        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
     
-    with open(ruta_cat, 'w') as f:
-        json.dump(nuevo_catalogo, f, indent=4)
+    print(f"📡 Escaneando frecuencia ({plataforma}): {canal_url}")
+    try:
+        with yt_dlp.YoutubeDL(opciones) as ydl:
+            info = ydl.extract_info(canal_url, download=False)
+            if 'entries' in info:
+                # Retornamos la lista de videos encontrados
+                return list(info['entries'])
+    except Exception as e:
+        print(f"⚠️ Error escaneando canal: {e}")
+        return []
+    return []
+
+def descargar_metadata_full(video_url):
+    """Descarga descripción, tags y subtítulos automáticos para el análisis."""
+    opciones = {
+        'quiet': True,
+        'skip_download': True,
+        'writeautomaticsub': True,
+        'sub_lang': 'en,es',
+        'outtmpl': '%(id)s' # Nombre temporal
+    }
+    with yt_dlp.YoutubeDL(opciones) as ydl:
+        return ydl.extract_info(video_url, download=False)
 
 # ==========================================
-# 🚀 CAPA 3: MOTOR OPERATIVO OMEGA (MIGRACIÓN SDK 2026)
+# 🚀 MOTOR PRINCIPAL OMEGA V16
 # ==========================================
 def ejecutar_obrero():
-    print(f"🚀 [SINC] Iniciando Agente Omega V13.0 | Densidad Semántica Máxima | SDK GenAI")
+    print(f"🚀 [SINC V16] Iniciando Protocolo Titán | Estrategia: Ruleta & Sigilo")
     
     api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        print("❌ ERROR CRÍTICO: GEMINI_API_KEY no detectada en las variables de entorno.")
-        sys.exit(1)
-
-    # Inicialización del cliente con la nueva librería google-genai
+    if not api_key: sys.exit("❌ ERROR: API KEY no encontrada")
+    
     client = genai.Client(api_key=api_key)
     
+    # Cargar Mapa
     try:
         with open('specialties/expert_nexus_01.json', 'r', encoding='utf-8') as f:
             mapa = json.load(f)
-    except FileNotFoundError:
-        print("❌ ERROR FATAL: No se encuentra el archivo 'expert_nexus_01.json'.")
-        sys.exit(1)
+    except Exception as e:
+        sys.exit(f"❌ Error leyendo el Mapa JSON: {e}")
 
-    for experto in mapa.get('knowledge_repository', []):
+    # 1. SELECCIÓN DE OBJETIVOS (RULETA)
+    expertos_del_turno = seleccionar_expertos_ruleta(mapa, max_por_turno=3)
+
+    for experto in expertos_del_turno:
         nombre = experto['identity']
-        print(f"\n--- 🕵️ AUDITANDO EXPERTO: {nombre} ---")
-        
-        # Extraemos todas las URLs vivas de este experto para la auditoría posterior
-        urls_vivas = [fuente['url'] for fuente in experto.get('bi_platform_sources', [])]
+        print(f"\n--- 🕵️ PROCESANDO OBJETIVO: {nombre} ---")
         
         for fuente in experto.get('bi_platform_sources', []):
-            # --- PROTOCOLO DE INACTIVIDAD (30/60/90) ---
-            last_sync = fuente.get('last_sync_marker', "") or datetime.now().strftime('%Y-%m-%d')
-            try:
-                dias_inactivo = (datetime.now() - datetime.strptime(last_sync, '%Y-%m-%d')).days
-            except:
-                dias_inactivo = 0
-
-            if dias_inactivo >= 90:
-                print(f"🚨 ALERTA DE OBSOLESCENCIA (90 DÍAS): {nombre} inactivo. Sugerencia: Evaluar reemplazo.")
-            elif dias_inactivo >= 30:
-                print(f"⚠️ AVISO DE LATENCIA: {nombre} sin actividad por {dias_inactivo} días.")
-
-            # --- PROCESAMIENTO MULTIMODAL ---
-            if fuente['health_status'] == "active":
-                ruta_exp = f"ASCORP_KNOWLEDGE_VAULT/BASE_DE_CONOCIMIENTO_IA/{fuente['platform']}/{nombre.replace(' ', '_')}"
-                os.makedirs(ruta_exp, exist_ok=True)
+            if fuente.get('type') != 'channel_root': continue
+            
+            # 2. ESCANEO DE VANGUARDIA
+            candidatos = obtener_candidatos_mixtos(fuente['url'], fuente['platform'])
+            
+            # Procesamos MÁXIMO 2 videos por experto en este turno (1 nuevo + 1 respaldo)
+            # para respetar el presupuesto de tiempo.
+            contador_videos = 0
+            
+            for vid in candidatos:
+                if not vid or contador_videos >= 2: break
                 
-                contexto_h = obtener_historial_completo(ruta_exp)
+                video_id = vid.get('id')
+                if not video_id: continue
                 
-                print(f"📡 Ingesta Multimodal Activa (SDK 2026): {fuente['url']}")
+                # Construcción de URL según plataforma
+                if fuente['platform'] == 'youtube':
+                    video_url = f"https://www.youtube.com/watch?v={video_id}"
+                else:
+                    video_url = vid.get('url', vid.get('webpage_url'))
+
+                # 3. VERIFICACIÓN DE EXISTENCIA (Estructura de Carpetas por Año)
+                fecha_str = vid.get('upload_date', datetime.now().strftime('%Y%m%d'))
+                año = fecha_str[:4]
+                titulo_clean = "".join([c if c.isalnum() else "_" for c in vid.get('title', 'video_sin_nombre')])[:50]
+                
+                ruta_final = f"ASCORP_KNOWLEDGE_VAULT/BASE_DE_CONOCIMIENTO_IA/{fuente['platform']}/{nombre.replace(' ', '_')}/{año}"
+                archivo_md = f"{ruta_final}/{fecha_str}_{titulo_clean}.md"
+                
+                if os.path.exists(archivo_md):
+                    print(f"⏭️  [SALTANDO] Ya existe en Bóveda: {vid.get('title')}")
+                    continue
+                
+                # 4. EXTRACCIÓN Y ANÁLISIS (Si es contenido nuevo)
+                os.makedirs(ruta_final, exist_ok=True)
+                print(f"🧠 [ANALIZANDO] {vid.get('title')}...")
+                
                 try:
-                    # El Obrero invoca a Gemini con el Prompt Maestro y el Historial
-                    # SDK UPDATE: client.models.generate_content
+                    info_rica = descargar_metadata_full(video_url)
+                    descripcion = info_rica.get('description', 'Sin descripción')
+                    tags = info_rica.get('tags', [])
+                    
+                    # Semáforo Temporal Previo
+                    anio_video = int(fecha_str[:4])
+                    anio_actual = datetime.now().year
+                    contexto_temporal = ""
+                    if anio_video < (anio_actual - 1):
+                        contexto_temporal = f"⚠️ ALERTA: Este video es del {anio_video}. Verificar obsolescencia."
+
+                    # Inyección al Modelo
+                    full_prompt = f"{PROMPT_MAESTRO}\n\n--- METADATA ---\nTITULO: {vid.get('title')}\nFECHA: {fecha_str}\nTAGS: {tags}\nDESCRIPCIÓN/TRANSCRIPT: {descripcion}\nURL: {video_url}\n{contexto_temporal}"
+                    
                     response = client.models.generate_content(
                         model='gemini-1.5-flash',
-                        contents=f"{PROMPT_MAESTRO}\n\nHISTORIAL PREVIO PARA COMPARAR:\n{contexto_h}\n\nFUENTE NUEVA A ANALIZAR:\n{fuente['url']}"
+                        contents=full_prompt
                     )
                     
-                    # Guardado en Bóveda con Timestamp técnico
-                    ts = datetime.now().strftime('%Y-%m-%d_T%H%M')
-                    filename = os.path.join(ruta_exp, f"{ts}_analisis_ia.md")
+                    # 5. GUARDADO BLINDADO
+                    with open(archivo_md, 'w', encoding='utf-8') as f:
+                        f.write(f"# {vid.get('title')}\n\nLink: {video_url}\nFecha: {fecha_str}\n\n{response.text}")
                     
-                    with open(filename, 'w', encoding='utf-8') as f:
-                        f.write(response.text)
-                    print(f"✅ CONOCIMIENTO BLINDADO Y GUARDADO: {filename}")
+                    print(f"✅ [GUARDADO] {archivo_md}")
+                    contador_videos += 1
+                    
+                    # 6. PAUSA DE SEGURIDAD (Jitter)
+                    pausa_tactica()
                     
                 except Exception as e:
-                    print(f"💥 FALLO EN EL MOTOR NEURONAL: {str(e)}")
-            
-        # Ejecutar vigilancia de borrados al final del ciclo del experto
-        auditoria_de_borrados(ruta_exp, urls_vivas)
+                    print(f"💥 Error procesando video: {e}")
 
 if __name__ == "__main__":
     ejecutar_obrero()
