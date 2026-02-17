@@ -196,15 +196,37 @@ def ejecutar_obrero():
     
     client = genai.Client(api_key=api_key)
     
-    # Cargar Mapa de Expertos
+# --- MOTOR DE INGESTA MD V17.2 (BI-PLATAFORMA & LIMPIEZA DE CORCHETES) ---
+    expertos_totales = []
     try:
-        with open('specialties/expert_nexus_01.json', 'r', encoding='utf-8') as f:
-            mapa = json.load(f)
+        with open('INDICE_DE_EXPERTOS.md', 'r', encoding='utf-8') as f:
+            for linea in f:
+                if '|' in linea and 'http' in linea:
+                    columnas = [c.strip() for c in linea.split('|')]
+                    nombre = columnas[1].replace('**', '')
+                    especialidad = columnas[2]
+                    # Limpiamos los corchetes [] para que el link sea puro para el motor
+                    yt_link = columnas[3].strip('[]') if 'http' in columnas[3] else None
+                    tt_link = columnas[4].strip('[]') if 'http' in columnas[4] else None
+                    
+                    fuentes = []
+                    if yt_link: fuentes.append({'type': 'channel_root', 'platform': 'youtube', 'url': yt_link})
+                    if tt_link: fuentes.append({'type': 'channel_root', 'platform': 'tiktok', 'url': tt_link})
+                    
+                    expertos_totales.append({
+                        'identity': nombre,
+                        'specialty': especialidad,
+                        'bi_platform_sources': fuentes
+                    })
     except Exception as e:
-        sys.exit(f"❌ Error leyendo el Mapa JSON: {e}")
+        sys.exit(f"❌ Error crítico leyendo la Tabla MD: {e}")
 
     # 1. SELECCIÓN DE OBJETIVOS (RULETA DE CASINO)
-    expertos_del_turno = seleccionar_expertos_ruleta(mapa, max_por_turno=3)
+    if len(expertos_totales) > 3:
+        expertos_del_turno = random.sample(expertos_totales, k=3)
+    else:
+        expertos_del_turno = expertos_totales
+    print(f"🎰 [RULETA] Turno para: {[e['identity'] for e in expertos_del_turno]}")
 
     for experto in expertos_del_turno:
         nombre = experto['identity']
