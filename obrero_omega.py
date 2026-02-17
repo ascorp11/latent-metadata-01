@@ -11,13 +11,13 @@ import yt_dlp
 from PIL import Image
 
 # ==========================================
-# 🧠 CEREBRO: PROMPT MAESTRO V17 (OMNISCIENTE - MÁXIMA DENSIDAD)
+# 🧠 CEREBRO: PROMPT MAESTRO V17.0 (OMNISCIENTE - MÁXIMA DENSIDAD)
 # ==========================================
 PROMPT_MAESTRO = """
 ACTÚA COMO ARQUITECTO DE IA SENIOR PARA EL 'KERNEL 12.7'.
 ANALIZA ESTE CONTENIDO MULTIMODAL (Video Metadata + Imagen Visual + Memoria Histórica).
 
-TU MISIÓN: DECONSTRUIR LA LÓGICA, DETECTAR OBSOLESCENCIA Y ESTRUCTURAR CONOCIMIENTO.
+TU MISIÓN: DECONSTRUIR LA LÓGICA, DETECTAR OBSOLESCENCIA Y EVALUAR VALOR TRANSVERSAL.
 
 INPUTS DISPONIBLES:
 1. METADATA: Título, transcripción y tags.
@@ -30,15 +30,20 @@ ESTRUCTURA DE SALIDA (MARKDOWN OPTIMIZADO PARA NOTEBOOKLM):
 
 ## 🚦 SEMÁFORO DE VIGENCIA & EVOLUCIÓN
 * **Estado:** (✅ VIGENTE / ⚠️ OBSOLETO / 🔄 EN EVOLUCIÓN)
-* **Análisis Evolutivo:** Compara lo dicho en este video con la "Memoria Histórica" adjunta. ¿Ha cambiado de opinión el experto? ¿La tecnología evolucionó?
+* **Análisis Evolutivo:** Compara lo dicho con la Memoria Histórica adjunta. ¿Ha cambiado de opinión el experto? ¿La tecnología evolucionó? Detecta el cambio de paradigma.
+
+## 🧠 NEXO TRANSVERSAL
+* **¿Es Transversal?:** (SÍ / NO)
+* **Justificación:** ¿Por qué este hallazgo sirve a otras ramas del Kernel (SEO, IA, VENTAS, LINKEDIN)? 
+* **ETIQUETA_NEXO:** [TRANSVERSAL: SÍ] (Escribir exactamente esto solo si aplica).
 
 ## 1. SÍNTESIS EJECUTIVA (Nivel Alfa)
 Resumen denso de 1 párrafo. Foco en el "Problem-Solution Fit".
 
 ## 2. ANÁLISIS VISUAL & TÉCNICO (Nivel Beta)
 * **Lo que se ve:** Describe diagramas o código mostrados en la imagen adjunta.
-* **Herramientas:** Lista técnica de software/librerías.
-* **Secretos:** Trucos no obvios mencionados.
+* **Herramientas:** Lista técnica de software/librerías mencionadas.
+* **Secretos:** Trucos no obvios o 'hacks' mencionados.
 
 ## 3. INGENIERÍA INVERSA (Nivel Gamma)
 Explicación paso a paso de la lógica o tutorial. Usa bloques de código si aplica.
@@ -46,13 +51,9 @@ Explicación paso a paso de la lógica o tutorial. Usa bloques de código si apl
 ## 4. 🔗 GRAPHRAG (NODOS JSON)
 ```json
 {
-  "nodos_clave": ["Concepto A", "Concepto B"],
-  "relaciones": [
-{"origen": "Concepto A", "relacion": "mejora_a", "destino": "Concepto B"}
-  ]
+```python
+  "relaciones": [{"origen": "A", "relacion": "mejora", "destino": "B"}]
 }
-[KERNEL_UPGRADE_INSTRUCTIONS]
-Instrucción directa y atómica para actualizar la lógica del Kernel 12.7.
 """
 
 # ==========================================
@@ -205,9 +206,10 @@ def ejecutar_obrero():
                     columnas = [c.strip() for c in linea.split('|')]
                     nombre = columnas[1].replace('**', '')
                     especialidad = columnas[2]
-                    # Limpiamos los corchetes [] para que el link sea puro para el motor
+                    # Ajustamos los índices porque ahora la tabla es de solo 4 columnas
                     yt_link = columnas[3].strip('[]') if 'http' in columnas[3] else None
-                    tt_link = columnas[4].strip('[]') if 'http' in columnas[4] else None
+                    # Si no hay link de TikTok, la última columna podría estar vacía
+                    tt_link = columnas[4].strip('[]') if len(columnas) > 4 and 'http' in columnas[4] else None
                     
                     fuentes = []
                     if yt_link: fuentes.append({'type': 'channel_root', 'platform': 'youtube', 'url': yt_link})
@@ -292,11 +294,37 @@ def ejecutar_obrero():
                         contents=inputs_gemini
                     )
                     
-                    # 7. GUARDADO EN BÓVEDA
-                    with open(archivo_md, 'w', encoding='utf-8') as f:
-                        f.write(f"# {vid.get('title')}\n\n{aviso_tempo}\nLink: {video_url}\nEspecialidad: {especialidad}\n\n{response.text}")
+                    # --- 7. MOTOR DE GUARDADO V17.3 (EXPERTO + NEXO + CRONÓMETRO) ---
                     
-                    print(f"✅ [BÓVEDA ACTUALIZADA]: {archivo_md}")
+                    # LÓGICA DEL CRONÓMETRO: Medimos la antigüedad del hallazgo
+                    ahora = datetime.now()
+                    fecha_video = datetime.strptime(fecha_str, '%Y%m%d')
+                    dias_antiguedad = (ahora - fecha_video).days
+                    
+                    alerta_obsolescencia = ""
+                    # Umbral de Alerta: 180 días para IA/Tech, 365 para el resto
+                    if (especialidad in ['IA', 'LINKEDIN'] and dias_antiguedad > 180) or dias_antiguedad > 365:
+                        alerta_obsolescencia = f"⚠️ [ALERTA DE VIGENCIA]: Contenido con {dias_antiguedad} días. Riesgo de desfase.\n\n"
+
+                    # Preparamos el contenido final una sola vez
+                    contenido_final = f"# {vid.get('title')}\n\n{alerta_obsolescencia}{aviso_tempo}\nLink: {video_url}\nEspecialidad: {especialidad}\n\n{response.text}"
+
+                    # COPIA 1: Guardado en la carpeta del experto
+                    with open(archivo_md, 'w', encoding='utf-8') as f:
+                        f.write(contenido_final)
+                    print(f"✅ [BÓVEDA EXPERTO ACTUALIZADA]: {archivo_md}")
+
+                    # COPIA 2 (NEXO): Solo si el Prompt detectó valor transversal
+                    if "[TRANSVERSAL: SÍ]" in response.text:
+                        ruta_nexo = f"ASCORP_KNOWLEDGE_VAULT/🧠_CONOCIMIENTO_TRANSVERSAL/{especialidad}"
+                        os.makedirs(ruta_nexo, exist_ok=True)
+                        archivo_nexo = f"{ruta_nexo}/{fecha_str}_{titulo_clean}.md"
+                        
+                        with open(archivo_nexo, 'w', encoding='utf-8') as f_n:
+                            f_n.write(f"--- 🌐 HALLAZGO TRANSVERSAL ---\nORIGEN: {nombre}\n{contenido_final}")
+                        print(f"✨ [NEXO CREADO]: {archivo_nexo}")
+
+                    # 8. MANTENIMIENTO DE SIGILO
                     pausa_tactica()
                     
                 except Exception as e:
