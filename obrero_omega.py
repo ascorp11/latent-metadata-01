@@ -11,7 +11,7 @@ import yt_dlp
 from PIL import Image
 
 # ==========================================
-# 🧠 CEREBRO: PROMPT MAESTRO V17.0 (OMNISCIENTE - MÁXIMA DENSIDAD)
+# 🧠 CEREBRO: PROMPT MAESTRO V17.2 (OMNISCIENTE - MÁXIMA DENSIDAD)
 # ==========================================
 PROMPT_MAESTRO = """
 ACTÚA COMO ARQUITECTO DE IA SENIOR PARA EL 'KERNEL 12.7'.
@@ -51,9 +51,8 @@ Explicación paso a paso de la lógica o tutorial. Usa bloques de código si apl
 ## 4. 🔗 GRAPHRAG (NODOS JSON)
 ```json
 {
-```python
-  "relaciones": [{"origen": "A", "relacion": "mejora", "destino": "B"}]
-}
+  "nodos_clave": ["Concepto A"],
+  "relaciones": [{"origen": "A", "relacion": "mejora", "destino": "B"}
 """
 
 # ==========================================
