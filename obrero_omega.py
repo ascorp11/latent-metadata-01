@@ -134,6 +134,11 @@ def obtener_candidatos_mixtos(canal_url, plataforma, ruta_base_expertos, nombre_
             objetivos = []
             # Limpiamos la lista de entradas para quedarnos solo con videos reales
             todos = [v for v in todos if v.get('_type', 'video') == 'video']
+            # --- VÁLVULA DE SEGURIDAD (INSERCIÓN CRÍTICA) ---
+            if not todos:
+                print(f"⚠️ [AVISO]: No se encontraron videos válidos para {nombre_experto}. Saltando...")
+                return None
+            # ------------------------------------------------
             # --- PASO 1: VANGUARDIA (Prioridad Absoluta) ---
             objetivos.append(todos[0])
             
