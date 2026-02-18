@@ -338,11 +338,11 @@ def ejecutar_obrero():
 
                     # CORRECCIÓN DE MODELO: Usamos la versión estable 'gemini-1.5-flash'
                     # Google eliminó la etiqueta 'latest' para la API gratuita v1beta
-                    # USAMOS LA VERSIÓN ESPECÍFICA (002) PARA EVITAR ERROR 404 EN V1BETA
+                    # USAMOS EL NOMBRE BASE PARA MÁXIMA COMPATIBILIDAD CON LA LIBRERÍA NUEVA
                     response = client.models.generate_content(
-                        model='gemini-1.5-flash-002', 
+                        model='gemini-1.5-flash', 
                         contents=inputs_gemini
-                    )                    
+                    )                   
                     
                     # --- 7. MOTOR DE GUARDADO V17.3 (EXPERTO + NEXO + CRONÓMETRO) ---
                     
