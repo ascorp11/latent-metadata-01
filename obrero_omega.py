@@ -98,6 +98,8 @@ def configurar_yt_dlp(plataforma='youtube'):
         # Esto corrige el fallo reportado en el PDF sobre "AssertionError".
         # [CORRECCIÓN]: Usamos Chrome 110. Según el PDF, es la versión "Funcional" 
         # cuando el entorno Linux no soporta las últimas firmas criptográficas.
+        # 1. SUPLANTACIÓN: Chrome 110 (Estándar de estabilidad para Linux/GitHub Actions)
+        # Si usamos una versión más nueva (ej. 120), faltan librerías criptográficas.
         opciones['impersonate'] = ImpersonateTarget(
             client='chrome',
             version='110',
@@ -208,9 +210,10 @@ def descargar_inteligencia_multimodal(video_url):
         'writethumbnail': True,
         'outtmpl': 'temp_vision',
         'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
-        # TRUCO MAESTRO: Usamos el cliente de Android para evitar el 'n challenge' de JS
-        # Esto soluciona el error de "Requested format is not available"
-        'extractor_args': {'youtube': {'player_client': ['android', 'web']}}
+        
+        # TRUCO MAESTRO V18.2: Usamos cliente iOS (iPhone) en lugar de Android.
+        # iOS acepta mejor las cookies exportadas y evita el bloqueo 'n challenge'.
+        'extractor_args': {'youtube': {'player_client': ['ios']}}
     }
     
     # Limpiamos rastros visuales previos
@@ -333,8 +336,10 @@ def ejecutar_obrero():
                         except:
                             print("⚠️ Imagen dañada, procesando solo como audio/texto.")
 
+                    # CORRECCIÓN DE MODELO: Usamos la versión estable 'gemini-1.5-flash'
+                    # Google eliminó la etiqueta 'latest' para la API gratuita v1beta
                     response = client.models.generate_content(
-                        model='gemini-1.5-flash-latest',
+                        model='gemini-1.5-flash', 
                         contents=inputs_gemini
                     )
                     
