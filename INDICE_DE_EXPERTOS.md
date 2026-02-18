@@ -24,7 +24,7 @@
 | **Juanjo Amengual** | LINKEDIN | - | [https://www.tiktok.com/@juanjoamengual] | 🔄 Activo |
 | **--- EXPERTOS EN VENTA ---** | --- | --- | --- | --- |
 | **Israel Amescua** | VENTA | [https://www.youtube.com/@israel.amescua/videos] | [https://www.tiktok.com/@israel.amescua] | 🔄 Activo |
-| **DinstintoPodca** | VENTA | [https://www.youtube.com/@DinstintoPodca/videos] | - | 🔄 Activo |
+| **DistintoPodcast** | VENTA | [https://www.youtube.com/@DistintoPodcast/videos] | - | 🔄 Activo |
 | **vilmanunez** | VENTA | [https://www.youtube.com/@vilmanunez/videos] | - | 🔄 Activo |
 | **Franco Lulli** | VENTA | - | [https://vt.tiktok.com/ZSmSA8nou/] | 🔄 Activo |
 | **Daniel Marote** | VENTA | - | [https://www.tiktok.com/@manueltrejove] | 🔄 Activo |
@@ -33,3 +33,4 @@
 | **conexión irracional** | VENTA | - | [https://www.tiktok.com/@conexion.irracional] | 🔄 Activo |
 | **FAco prado** | VENTA | - | [https://www.tiktok.com/@desarrolloemprendedorfp] | 🔄 Activo |
 | **Manuel trejo** | VENTA | - | [https://www.tiktok.com/@manueltrejove] | 🔄 Activo |
+
