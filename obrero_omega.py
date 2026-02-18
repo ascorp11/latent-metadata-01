@@ -132,6 +132,8 @@ def obtener_candidatos_mixtos(canal_url, plataforma, ruta_base_expertos, nombre_
             if not todos: return []
             
             objetivos = []
+            # Limpiamos la lista de entradas para quedarnos solo con videos reales
+            todos = [v for v in todos if v.get('_type', 'video') == 'video']
             # --- PASO 1: VANGUARDIA (Prioridad Absoluta) ---
             objetivos.append(todos[0])
             
@@ -289,7 +291,7 @@ def ejecutar_obrero():
                             print("⚠️ Imagen dañada, procesando solo como audio/texto.")
 
                     response = client.models.generate_content(
-                        model='gemini-1.5-flash',
+                        model='gemini-1.5-flash-latest',
                         contents=inputs_gemini
                     )
                     
