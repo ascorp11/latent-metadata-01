@@ -1,13 +1,6 @@
-# --- MOTOR DE INTELIGENCIA GOOGLE (SDK 2026) ---
 google-genai>=0.3.0
-
-# --- MÓDULO DE EXTRACCIÓN MASIVA (ARQUEOLOGÍA DIGITAL) ---
 yt-dlp>=2025.01.01
 requests>=2.31.0
 python-dotenv>=1.0.0
 pillow>=10.0.0
-
-# --- NOTA TÉCNICA ---
-# yt-dlp es el motor que permite diferenciar entre 'Shorts', 'Lives' y 'Videos Largos'.
-# Indispensable para la arquitectura V14.
 curl_cffi
