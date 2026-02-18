@@ -96,11 +96,12 @@ def configurar_yt_dlp(plataforma='youtube'):
     if plataforma == 'tiktok':
         # 1. SUPLANTACIÓN AVANZADA: Usamos un OBJETO, no texto simple.
         # Esto corrige el fallo reportado en el PDF sobre "AssertionError".
+        # [CORRECCIÓN]: Usamos Chrome 110. Según el PDF, es la versión "Funcional" 
+        # cuando el entorno Linux no soporta las últimas firmas criptográficas.
         opciones['impersonate'] = ImpersonateTarget(
             client='chrome',
-            version='120',
-            os='windows',
-            os_version='10'
+            version='110',
+            os='windows'
         )
         
         # 2. INYECCIÓN DE API MÓVIL:
@@ -200,11 +201,16 @@ def descargar_inteligencia_multimodal(video_url):
     Extrae Metadata técnica y activa la VISIÓN descargando el Thumbnail.
     """
     opciones = {
-        'quiet': True, 'skip_download': True,
-        'writeautomaticsub': True, 'sub_lang': 'en,es',
-        'writethumbnail': True, # 👁️ ACTIVAR VISIÓN
-        'outtmpl': 'temp_vision', # Nombre temporal para la imagen
-        'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None
+        'quiet': True, 
+        'skip_download': True,
+        'writeautomaticsub': True, 
+        'sub_lang': 'en,es',
+        'writethumbnail': True,
+        'outtmpl': 'temp_vision',
+        'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
+        # TRUCO MAESTRO: Usamos el cliente de Android para evitar el 'n challenge' de JS
+        # Esto soluciona el error de "Requested format is not available"
+        'extractor_args': {'youtube': {'player_client': ['android', 'web']}}
     }
     
     # Limpiamos rastros visuales previos
