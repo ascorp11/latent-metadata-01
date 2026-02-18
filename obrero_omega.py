@@ -87,10 +87,14 @@ def configurar_yt_dlp(plataforma):
         'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
         'extract_flat': True,
     }
+    # --- MODIFICACIÓN V17.4: DISFRAZ DE NAVEGADOR REAL ---
     if plataforma == 'tiktok':
-        opciones['user_agent'] = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1'
-    else:
-        opciones['user_agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/91.0.4472.124 Safari/537.36'
+        # Usamos curl_cffi para imitar un navegador Chrome real y engañar a TikTok
+        opciones['impersonate'] = 'chrome'
+    
+    # Añadimos un User-Agent genérico por si acaso
+    opciones['user_agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    
     return opciones
 def pausa_tactica():
     """
