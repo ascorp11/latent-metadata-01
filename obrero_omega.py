@@ -80,13 +80,15 @@ def leer_memoria_evolutiva(ruta_base_experto):
         except: continue
     return texto_memoria
 
-def configurar_yt_dlp(plataforma):
-    """Configuración blindada con Cookies y User-Agent específico."""
+def configurar_yt_dlp(plataforma='youtube'):
     opciones = {
-        'quiet': True, 'ignoreerrors': True, 'no_warnings': True,
-        'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
-        'extract_flat': True,
+        'quiet': True,
+        'no_warnings': True,
+        'ignoreerrors': True,
+        'extract_flat': True,  # Solo extrae metadatos, no baja video
+        'lazy_playlist': True,
     }
+
     # --- MODIFICACIÓN V17.4: DISFRAZ DE NAVEGADOR REAL ---
     if plataforma == 'tiktok':
         # Usamos curl_cffi para imitar un navegador Chrome real y engañar a TikTok
