@@ -8,6 +8,8 @@ from datetime import datetime
 from google import genai
 from google.genai import types
 import yt_dlp
+# [CORRECCIÓN PDF]: Importación necesaria para evitar AssertionError en suplantación
+from yt_dlp.networking.impersonate import ImpersonateTarget 
 from PIL import Image
 
 # ==========================================
@@ -81,21 +83,44 @@ def leer_memoria_evolutiva(ruta_base_experto):
     return texto_memoria
 
 def configurar_yt_dlp(plataforma='youtube'):
+    # Configuración base (silenciosa y rápida)
     opciones = {
         'quiet': True,
         'no_warnings': True,
         'ignoreerrors': True,
-        'extract_flat': True,  # Solo extrae metadatos, no baja video
+        'extract_flat': True,
         'lazy_playlist': True,
     }
 
-    # --- MODIFICACIÓN V17.4: DISFRAZ DE NAVEGADOR REAL ---
+    # --- PROTOCOLO DE EVASIÓN TIKTOK 2026 (Basado en Deep Research) ---
     if plataforma == 'tiktok':
-        # Usamos curl_cffi para imitar un navegador Chrome real y engañar a TikTok
-        opciones['impersonate'] = 'chrome'
+        # 1. SUPLANTACIÓN AVANZADA: Usamos un OBJETO, no texto simple.
+        # Esto corrige el fallo reportado en el PDF sobre "AssertionError".
+        opciones['impersonate'] = ImpersonateTarget(
+            client='chrome',
+            version='120',
+            os='windows',
+            os_version='10'
+        )
+        
+        # 2. INYECCIÓN DE API MÓVIL:
+        # Engañamos a TikTok para que crea que somos una App, no un navegador web.
+        opciones['extractor_args'] = {
+            'tiktok': {
+                'api_hostname': 'api22-normal-c-useast2a.tiktokv.com',
+                'app_info': '7355728856979392518' # ID genérico de App
+            }
+        }
+        
+        # 3. LÍMITE DE SEGURIDAD:
+        # Solo pedimos los 15 primeros videos para no activar alarmas.
+        opciones['playlist_items'] = '1-15'
+        # IMPORTANTE: False para asegurar orden cronológico (Nuevo -> Viejo)
+        opciones['playlistreverse'] = False 
     
-    # Añadimos un User-Agent genérico por si acaso
-    opciones['user_agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    else:
+        # Configuración estándar para YouTube (sin cambios)
+        opciones['user_agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     
     return opciones
 def pausa_tactica():
@@ -138,8 +163,9 @@ def obtener_candidatos_mixtos(canal_url, plataforma, ruta_base_expertos, nombre_
             if not todos: return []
             
             objetivos = []
-            # Limpiamos la lista de entradas para quedarnos solo con videos reales
-            todos = [v for v in todos if v.get('_type', 'video') == 'video']
+            # --- FILTRO INTELIGENTE V17.5 (Corrige error de SurferSEO) ---
+            # Aceptamos 'video', 'url' y 'url_transparent' para que no se escapen videos en listas planas
+            todos = [v for v in todos if v.get('_type', 'video') in ['video', 'url', 'url_transparent']]
             # --- VÁLVULA DE SEGURIDAD (INSERCIÓN CRÍTICA) ---
             if not todos:
                 print(f"⚠️ [AVISO]: No se encontraron videos válidos para {nombre_experto}. Saltando...")
