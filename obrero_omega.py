@@ -233,8 +233,19 @@ def descargar_inteligencia_multimodal(video_url):
         
         return info, imagen_path
 
+def obtener_modelo_valido(client):
+    """[BLINDAJE ANT-404]: Busca el modelo Flash disponible hoy."""
+    try:
+        modelos = client.models.list()
+        validos = [m.name for m in modelos if "flash" in m.name and "generateContent" in m.supported_methods]
+        print(f"📡 [IA CATALOG]: Modelos detectados: {validos}")
+        if "models/gemini-1.5-flash-002" in validos: return "gemini-1.5-flash-002"
+        if "models/gemini-1.5-flash" in validos: return "gemini-1.5-flash"
+        return validos[0].replace("models/", "") if validos else "gemini-1.5-flash"
+    except: return "gemini-1.5-flash"
+
 # ==========================================
-# 🚀 MOTOR PRINCIPAL OMEGA V17.1 (OMNISCIENTE)
+# 🚀 MOTOR PRINCIPAL OMEGA V18.5 (ESTABILIDAD)
 # ==========================================
 def ejecutar_obrero():
     print(f"🚀 [SINC V17.1] Iniciando Protocolo Omnisciente | Fábrica de Expertos")
@@ -244,7 +255,10 @@ def ejecutar_obrero():
     
     client = genai.Client(api_key=api_key)
     
-# --- MOTOR DE INGESTA MD V17.2 (BI-PLATAFORMA & LIMPIEZA DE CORCHETES) ---
+    # --- DETECCIÓN DINÁMICA DE MODELO ---
+    modelo_inteligente = obtener_modelo_valido(client)
+    print(f"🤖 [IA]: Usando modelo auto-detectado: {modelo_inteligente}")
+    
     expertos_totales = []
     try:
         with open('INDICE_DE_EXPERTOS.md', 'r', encoding='utf-8') as f:
@@ -338,11 +352,11 @@ def ejecutar_obrero():
 
                     # CORRECCIÓN DE MODELO: Usamos la versión estable 'gemini-1.5-flash'
                     # Google eliminó la etiqueta 'latest' para la API gratuita v1beta
-                    # USAMOS EL NOMBRE BASE PARA MÁXIMA COMPATIBILIDAD CON LA LIBRERÍA NUEVA
+                    # Llamada resiliente: usa el modelo que el Obrero detectó al inicio
                     response = client.models.generate_content(
-                        model='gemini-1.5-flash', 
+                        model=modelo_inteligente,
                         contents=inputs_gemini
-                    )                   
+                    )                  
                     
                     # --- 7. MOTOR DE GUARDADO V17.3 (EXPERTO + NEXO + CRONÓMETRO) ---
                     
