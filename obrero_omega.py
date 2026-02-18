@@ -209,11 +209,16 @@ def descargar_inteligencia_multimodal(video_url):
         'sub_lang': 'en,es',
         'writethumbnail': True,
         'outtmpl': 'temp_vision',
+        # ACTIVAMOS COOKIES: Son vitales para saltar el muro de YouTube
         'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
-        
-        # TRUCO MAESTRO V18.2: Usamos cliente iOS (iPhone) en lugar de Android.
-        # iOS acepta mejor las cookies exportadas y evita el bloqueo 'n challenge'.
-        'extractor_args': {'youtube': {'player_client': ['ios']}}
+        # USAMOS CLIENTE WEB: Es el único que acepta cookies al 100%
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['web'],
+                'po_token': 'web+mn' # Intento de bypass automático del n-challenge
+            }
+        },
+        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
     }
     
     # Limpiamos rastros visuales previos
@@ -241,7 +246,8 @@ def obtener_modelo_valido(client):
         print(f"📡 [IA CATALOG]: Modelos detectados: {validos}")
         if "models/gemini-1.5-flash-002" in validos: return "gemini-1.5-flash-002"
         if "models/gemini-1.5-flash" in validos: return "gemini-1.5-flash"
-        return validos[0].replace("models/", "") if validos else "gemini-1.5-flash"
+        # Mantenemos el nombre completo 'models/...' para que la API Beta no de error 404
+        return validos[0] if validos else "models/gemini-1.5-flash"
     except: return "gemini-1.5-flash"
 
 # ==========================================
