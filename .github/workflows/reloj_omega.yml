@@ -38,6 +38,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install nodriver curl_cffi yt-dlp google-genai pillow
 
       - name: 🍪 Inyección de Credenciales (Cookies)
         # Genera el archivo cookies.txt a partir del Secreto configurado en GitHub
