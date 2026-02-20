@@ -238,32 +238,67 @@ def descargar_inteligencia_multimodal(video_url):
         
         return info, imagen_path
 
-def obtener_modelo_valido(client):
-    """[BLINDAJE ANT-404]: Busca el modelo Flash disponible hoy."""
+def obtener_modelo_valido(client, target_alias="gemini-1.5-flash"):
+    """
+    [PROTOCOLO DE RESILIENCIA]: Basado en Deep Research.
+    Usa 'supported_actions' para evitar el error 404 en la API v1beta.
+    """
     try:
-        modelos = client.models.list()
-        validos = [m.name for m in modelos if "flash" in m.name and "generateContent" in m.supported_methods]
-        print(f"📡 [IA CATALOG]: Modelos detectados: {validos}")
-        if "models/gemini-1.5-flash-002" in validos: return "gemini-1.5-flash-002"
-        if "models/gemini-1.5-flash" in validos: return "gemini-1.5-flash"
-        # Mantenemos el nombre completo 'models/...' para que la API Beta no de error 404
-        return validos[0] if validos else "models/gemini-1.5-flash"
-    except: return "gemini-1.5-flash"
+        # 1. Interrogamos el catálogo real
+        modelos = list(client.models.list())
+        
+        # 2. Filtramos usando el nuevo estándar 'supported_actions'
+        candidatos = [
+            m for m in modelos 
+            if target_alias in m.name and "generateContent" in m.supported_actions
+        ]
+        
+        if candidatos:
+            # Ordenamos para preferir versiones estables (como -002)
+            candidatos.sort(key=lambda x: x.name, reverse=True)
+            nombre_validado = candidatos[0].name
+            print(f"📡 [IA CATALOG]: Modelo validado encontrado: {nombre_validado}")
+            return nombre_validado
+        
+        # Fallback: buscamos cualquier flash que funcione
+        fallback = [m for m in modelos if "flash" in m.name and "generateContent" in m.supported_actions]
+        if fallback:
+            return fallback[0].name
+            
+        return f"models/{target_alias}" 
+    except Exception as e:
+        print(f"⚠️ Error en descubrimiento: {e}")
+        return f"models/{target_alias}"
 
 # ==========================================
-# 🚀 MOTOR PRINCIPAL OMEGA V18.5 (ESTABILIDAD)
+# 🚀 MOTOR PRINCIPAL OMEGA V20.1 (ESTABILIDAD & BOOTSTRAP)
 # ==========================================
 def ejecutar_obrero():
-    print(f"🚀 [SINC V17.1] Iniciando Protocolo Omnisciente | Fábrica de Expertos")
+    print(f"🚀 [SINC V20.1] Iniciando Protocolo Omnisciente | Fábrica de Expertos")
     
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key: sys.exit("❌ ERROR: API KEY no encontrada")
     
     client = genai.Client(api_key=api_key)
     
-    # --- DETECCIÓN DINÁMICA DE MODELO ---
+    # --- PROTOCOLO DE BOOTSTRAP BLINDADO (PDF pág. 8) ---
+    # Interroga el catálogo para evitar error 404 y asegura prefijo models/
     modelo_inteligente = obtener_modelo_valido(client)
-    print(f"🤖 [IA]: Usando modelo auto-detectado: {modelo_inteligente}")
+    
+    try:
+        # Pre-flight Check: Operación nula (ping) para validar estado de cuota
+        client.models.generate_content(
+            model=modelo_inteligente,
+            contents="ping",
+            config=types.GenerateContentConfig(max_output_tokens=1)
+        )
+        print(f"✅ [SISTEMA]: Conexión con Gemini ({modelo_inteligente}) exitosa.")
+    except Exception as e:
+        # Detección de Cuota 0 (Resource Exhausted) 
+        if "429" in str(e):
+            sys.exit("❌ ERROR: Cuota de API agotada (Nivel 0). Revisa facturación en Google Cloud.")
+        else:
+            print(f"⚠️ Advertencia de conexión inicial: {e}")
     
     expertos_totales = []
     try:
