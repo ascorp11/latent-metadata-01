@@ -4,6 +4,7 @@ import sys
 import time
 import random
 import glob
+import re  # Vector 5: Expresiones regulares
 from datetime import datetime
 from google import genai
 from google.genai import types
@@ -24,37 +25,39 @@ class AutonomousPoTokenProvider:
     def __init__(self):
         self.browser = None
         self.config = {
-            'headless': True,
-            'browser_args': ["--disable-dev-shm-usage", "--disable-gpu", "--no-sandbox"]
+            'headless': False, # Vector 3: Xvfb requiere False
+            'sandbox': False,  # Vector 3: Apaga el aislamiento root
+            'browser_args': ["--disable-dev-shm-usage", "--disable-gpu"]
         }
 
     async def mint_fresh_token(self, video_id):
         try:
             self.browser = await nd.start(**self.config)
-            url = f"https://www.youtube.com/watch?v={video_id}"
+            url = f"https://www.youtube.com/embed/{video_id}"
             page = await self.browser.get(url)
+            await asyncio.sleep(4.5)
             
-            # Tiempo estratégico para que la VM de BotGuard finalice su snapshot
-            await asyncio.sleep(7)
+            nodos_iframe = await page.select_all('iframe')
+            if nodos_iframe:
+                # Vector 5: Acceso seguro al diccionario attrs del primer nodo
+                url_origen = nodos_iframe[0].attrs.get('src', '')
             
             extraction_script = """
             (function() {
                 try {
                     return {
-                        'po_token': window.serviceIntegrityDimensions?.poToken || 
-                                    (typeof ytcfg !== 'undefined' ? ytcfg.get('PO_TOKEN') : null),
-                        'visitor_data': typeof ytcfg !== 'undefined' ? ytcfg.get('VISITOR_DATA') : null
+                        'po_token': window.serviceIntegrityDimensions?.poToken || (typeof ytcfg !== 'undefined' ? ytcfg.get('PO_TOKEN') : null)
                     };
                 } catch (e) { return null; }
             })()
             """
             result = await page.evaluate(extraction_script)
             if result and result.get('po_token'):
-                return result['po_token'], result['visitor_data']
-            return None, None
+                return result['po_token']
+            return None
         except Exception as e:
-            print(f"⚠️ Error en nodriver: {e}")
-            return None, None
+            print(f"⚠️ Error CDP: {e}")
+            return None
         finally:
             if self.browser:
                 self.browser.stop()
@@ -244,22 +247,26 @@ def obtener_candidatos_mixtos(canal_url, plataforma, ruta_base_expertos, nombre_
         print(f"⚠️ Error en Pinza Cronológica: {e}")
         return []
 
-def descargar_inteligencia_multimodal(video_url):
+# Vector 5: Heurística matemática estricta
+def validar_topologia_youtube(video_id: str) -> bool:
+    return bool(re.match(r'^[\w-]{11}$', video_id))
+
+async def descargar_inteligencia_multimodal(video_url):
     """
     Extrae Metadata técnica y activa la VISIÓN descargando el Thumbnail con Minting Autónomo.
     """
     video_id = video_url.split('v=')[-1] if 'v=' in video_url else video_url.split('/')[-1]
+    po_token = None
     
-    # --- ACUÑACIÓN AUTÓNOMA IN-SITU (PDF pág. 8) ---
-    print(f"🤖 [MINTING]: Acuñando pasaporte PO_TOKEN in-situ para {video_id}...")
-    po_token, visitor_data = None, None
-    try:
-        provider = AutonomousPoTokenProvider()
-        po_token, visitor_data = asyncio.run(provider.mint_fresh_token(video_id))
-        if po_token: print("✅ [MINTING]: Pasaporte criptográfico generado con éxito.")
-        else: print("⚠️ [MINTING]: Falló la extracción. Usando fallback.")
-    except Exception as e:
-        print(f"⚠️ [MINTING]: Error crítico en acuñación: {e}")
+    # Vector 5: Freno de emergencia. Nunca aplicar Minting a TikTok
+    if validar_topologia_youtube(video_id):
+        print(f"🤖 [MINTING]: Acuñando pasaporte PO_TOKEN in-situ para {video_id}...")
+        try:
+            provider = AutonomousPoTokenProvider()
+            po_token = await provider.mint_fresh_token(video_id)
+            if po_token: print("✅ [MINTING]: Pasaporte criptográfico generado.")
+        except Exception as e:
+            print(f"⚠️ [MINTING]: Falla estructural: {e}")
 
     # Enrutamiento Residencial Opcional (PDF Evasión pág. 4)
     proxy_url = os.environ.get('PROXY_URL', None)
@@ -272,7 +279,8 @@ def descargar_inteligencia_multimodal(video_url):
         'writethumbnail': True,
         'outtmpl': 'temp_vision',
         'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
-        'js_runtimes': 'node',
+        # Vector 4: Contrato de diccionario anidado estricto
+        'js_runtimes': { 'node': {} },
         'proxy': proxy_url, # Soporte para proxy residencial SOCKS5 si existe
         'extractor_args': {
             'youtube': {
@@ -323,7 +331,7 @@ def obtener_modelo_valido(client, target_alias="gemini-1.5-flash"):
 # ==========================================
 # 🚀 MOTOR PRINCIPAL OMEGA V21.0 (AUTONOMÍA & FÉNIX)
 # ==========================================
-def ejecutar_obrero():
+async def ejecutar_obrero():
     print(f"🚀 [SINC V21.0] Iniciando Protocolo de Autonomía Total")
     
     # --- AUTO-ACTUALIZACIÓN PROACTIVA (PDF pág. 9) ---
@@ -333,7 +341,7 @@ def ejecutar_obrero():
         # Rutina 1: Limpiar caché de red para evitar sesiones corruptas
         subprocess.run(["yt-dlp", "--rm-cache-dir"], check=False)
         # Rutina 2: Actualizar a la última versión nocturna
-        subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp[nightly]"], check=True)
+        subprocess.run([sys.executable, "-m", "pip", "install", "-U", "--pre", "yt-dlp[default]"], check=True)
     except Exception as e:
         print(f"⚠️ Aviso: Omitiendo auto-actualización ({e})")
 
@@ -431,7 +439,7 @@ def ejecutar_obrero():
                 
                 try:
                     # Bajamos metadata e imagen (Ojos activos)
-                    info_rica, imagen_path = descargar_inteligencia_multimodal(video_url)
+                    info_rica, imagen_path = await descargar_inteligencia_multimodal(video_url)
                     
                     # 5. MEMORIA EVOLUTIVA (Leer pasado histórico)
                     ruta_memoria = f"{ruta_base_especialidad}/{fuente['platform']}/{nombre.replace(' ', '_')}"
@@ -454,9 +462,9 @@ def ejecutar_obrero():
 
                     # CORRECCIÓN DE MODELO: Usamos la versión estable 'gemini-1.5-flash'
                     # Google eliminó la etiqueta 'latest' para la API gratuita v1beta
-                    # Llamada resiliente: usa el modelo que el Obrero detectó al inicio
+                    # Vector 2: Enrutamiento explícito a la Generación 2.5
                     response = client.models.generate_content(
-                        model=modelo_inteligente,
+                        model='gemini-2.5-flash',
                         contents=inputs_gemini
                     )                  
                     
@@ -497,4 +505,9 @@ def ejecutar_obrero():
                     print(f"💥 Error procesando video: {e}")
 
 if __name__ == "__main__":
-    ejecutar_obrero()
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    try:
+        asyncio.run(ejecutar_obrero())
+    except KeyboardInterrupt:
+        print("\nDespliegue finalizado manualmente.")
