@@ -1,4 +1,4 @@
-name: Reloj Despertador Omega (Ciclo Humano V16)
+name: Reloj Despertador Omega (Ciclo Humano V17)
 on:
   schedule:
     # Horarios UTC aproximados para simular Mañana (13:00), Tarde (18:00) y Noche (23:00)
@@ -18,11 +18,21 @@ jobs:
         with:
           fetch-depth: 0 # Recupera toda la historia para comparativa de evolución
 
-      - name: 🐍 Configuración de Entorno (Python 3.11)
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip' # Aceleración de arranque mediante caché
+      - name: 🛡️ Infraestructura de Atestación (Dependencias Headless)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser xvfb libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon libxcomposite1 libxdamage1 libxrandr2 libgbm1 libpango-1.0-0 asound2 wireguard-tools openresolv curl
+
+      - name: 🌐 Setup Cloudflare WARP (Evasión de ASN Azure)
+        run: |
+          curl -fsSL https://github.com/ViRb3/wgcf/releases/download/v2.2.22/wgcf_2.2.22_linux_amd64 -o wgcf
+          chmod +x wgcf
+          ./wgcf register --accept-tos
+          ./wgcf generate
+          sudo cp wgcf-profile.conf /etc/wireguard/wg0.conf
+          sudo wg-quick up wg0
+          echo "🌐 IP Pública Enmascarada (WARP):"
+          curl -s https://ifconfig.me
 
       - name: 🛠️ Inyección de Herramientas (Arqueología Digital)
         run: |
