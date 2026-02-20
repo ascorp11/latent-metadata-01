@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   trabajo_del_obrero:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: 🎒 Despliegue de Mochila (Checkout Full-Depth)
         uses: actions/checkout@v4
@@ -24,10 +24,15 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: 🛡️ Infraestructura de Atestación (Dependencias Headless)
+      - name: 🛡️ Setup Oficial de Navegador (Auto-Mantenible)
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: 🛡️ Infraestructura de Atestación (Pantalla Fantasma y VPN)
         run: |
           sudo apt-get update
-          sudo apt-get install -y chromium-browser xvfb libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon libxcomposite1 libxdamage1 libxrandr2 libgbm1 libpango-1.0-0 asound2 wireguard-tools openresolv curl
+          sudo apt-get install -y xvfb wireguard-tools resolvconf curl
 
       - name: 🌐 Setup Cloudflare WARP (Evasión de ASN Azure)
         run: |
