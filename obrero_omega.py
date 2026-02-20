@@ -11,50 +11,89 @@ import yt_dlp
 # [CORRECCIÓN PDF]: Importación necesaria para evitar AssertionError en suplantación
 from yt_dlp.networking.impersonate import ImpersonateTarget 
 from PIL import Image
+import asyncio
+import logging
+
+try:
+    import nodriver as nd
+except ImportError:
+    print("⚠️ 'nodriver' no está instalado. El Minting autónomo fallará.")
+
+class AutonomousPoTokenProvider:
+    """Servicio de Ingeniería Inversa para Acuñación de Tokens de Origen (PDF pág. 6)."""
+    def __init__(self):
+        self.browser = None
+        self.config = {
+            'headless': True,
+            'browser_args': ["--disable-dev-shm-usage", "--disable-gpu", "--no-sandbox"]
+        }
+
+    async def mint_fresh_token(self, video_id):
+        try:
+            self.browser = await nd.start(**self.config)
+            url = f"https://www.youtube.com/watch?v={video_id}"
+            page = await self.browser.get(url)
+            
+            # Tiempo estratégico para que la VM de BotGuard finalice su snapshot
+            await asyncio.sleep(7)
+            
+            extraction_script = """
+            (function() {
+                try {
+                    return {
+                        'po_token': window.serviceIntegrityDimensions?.poToken || 
+                                    (typeof ytcfg !== 'undefined' ? ytcfg.get('PO_TOKEN') : null),
+                        'visitor_data': typeof ytcfg !== 'undefined' ? ytcfg.get('VISITOR_DATA') : null
+                    };
+                } catch (e) { return null; }
+            })()
+            """
+            result = await page.evaluate(extraction_script)
+            if result and result.get('po_token'):
+                return result['po_token'], result['visitor_data']
+            return None, None
+        except Exception as e:
+            print(f"⚠️ Error en nodriver: {e}")
+            return None, None
+        finally:
+            if self.browser:
+                self.browser.stop()
 
 # ==========================================
-# 🧠 CEREBRO: PROMPT MAESTRO V17.2 (OMNISCIENTE - MÁXIMA DENSIDAD)
+# 🧠 CEREBRO: PROMPT MAESTRO (OMNISCIENTE - MÁXIMA DENSIDAD)
 # ==========================================
 PROMPT_MAESTRO = """
-ACTÚA COMO ARQUITECTO DE IA SENIOR PARA EL 'KERNEL 12.7'.
-ANALIZA ESTE CONTENIDO MULTIMODAL (Video Metadata + Imagen Visual + Memoria Histórica).
+ACTÚA COMO UN 'RECEPTOR COGNITIVO UNIVERSAL'. TU OBJETIVO ES LA CAPTURA TOTAL SIN FILTROS.
+NO RESUMAS SI ESO IMPLICA PERDER UN SOLO DATO TÉCNICO, TRUCO O REFERENCIA VISUAL.
 
-TU MISIÓN: DECONSTRUIR LA LÓGICA, DETECTAR OBSOLESCENCIA Y EVALUAR VALOR TRANSVERSAL.
+# PROTOCOLO DE EXTRACCIÓN TOTAL:
+1. DETALLE DE CARRUSELES/VISIÓN: Analiza cada elemento de la imagen adjunta. Si hay texto en pantalla, código, esquemas o productos, descríbelos con precisión milimétrica.
+2. METADATA PROFUNDA: Extrae hasta el último 'hack' mencionado en la descripción del video o hashtags.
+3. INFERENCIA DE INTENCIÓN: ¿Qué está tratando de vender o enseñar realmente bajo la superficie?
 
-INPUTS DISPONIBLES:
-1. METADATA: Título, transcripción y tags.
-2. VISIÓN: Análisis del Thumbnail/Frame clave (Detecta código, esquemas o texto en pantalla).
-3. MEMORIA EVOLUTIVA: Contexto de archivos previos del experto (Detecta contradicciones).
+ESTRUCTURA DE SALIDA (DENSIDAD MÁXIMA):
 
-ESTRUCTURA DE SALIDA (MARKDOWN OPTIMIZADO PARA NOTEBOOKLM):
+# 💎 [TITULO TÉCNICO COMPLETO]
 
-# [TITULO DEL VIDEO]
+## 🎯 VALOR ESTRATÉGICO (TRANSVERSALIDAD)
+* **HALLAZGO CLAVE:** (Un solo dato que justifica este video).
+* **NEXO_TRANSVERSAL:** [TRANSVERSAL: SÍ] (Escribir esto solo si el conocimiento es aplicable a otras áreas).
 
-## 🚦 SEMÁFORO DE VIGENCIA & EVOLUCIÓN
-* **Estado:** (✅ VIGENTE / ⚠️ OBSOLETO / 🔄 EN EVOLUCIÓN)
-* **Análisis Evolutivo:** Compara lo dicho con la Memoria Histórica adjunta. ¿Ha cambiado de opinión el experto? ¿La tecnología evolucionó? Detecta el cambio de paradigma.
+## 📊 DECONSTRUCCIÓN TÉCNICA (NIVEL GAMA)
+* **Captura Visual:** Análisis exhaustivo de la imagen adjunta (Thumbnail/Frames/Texto en carrusel).
+* **Stack Tecnológico:** Lista de herramientas, IA o librerías mencionadas.
+* **Algoritmos/Procesos:** Ingeniería inversa de lo enseñado.
 
-## 🧠 NEXO TRANSVERSAL
-* **¿Es Transversal?:** (SÍ / NO)
-* **Justificación:** ¿Por qué este hallazgo sirve a otras ramas del Kernel (SEO, IA, VENTAS, LINKEDIN)? 
-* **ETIQUETA_NEXO:** [TRANSVERSAL: SÍ] (Escribir exactamente esto solo si aplica).
+## 📝 BITÁCORA DE DETALLES "INVISIBLE"
+* Lista de consejos, 'hacks' o advertencias que el 90% de los espectadores pasaría por alto.
 
-## 1. SÍNTESIS EJECUTIVA (Nivel Alfa)
-Resumen denso de 1 párrafo. Foco en el "Problem-Solution Fit".
-
-## 2. ANÁLISIS VISUAL & TÉCNICO (Nivel Beta)
-* **Lo que se ve:** Describe diagramas o código mostrados en la imagen adjunta.
-* **Herramientas:** Lista técnica de software/librerías mencionadas.
-* **Secretos:** Trucos no obvios o 'hacks' mencionados.
-
-## 3. INGENIERÍA INVERSA (Nivel Gamma)
-Explicación paso a paso de la lógica o tutorial. Usa bloques de código si aplica.
-
-## 4. 🔗 GRAPHRAG (NODOS JSON)
+## 🔗 GRAPHRAG (MAPA DE CONOCIMIENTO)
 ```json
 {
-  "nodos_clave": ["Concepto A"],
-  "relaciones": [{"origen": "A", "relacion": "mejora", "destino": "B"}
+  "entidades": ["Herramienta X", "Concepto Y"],
+  "axiomas": "Verdad absoluta extraída del contenido",
+  "memoria": "Contradicción o evolución respecto a la memoria histórica"
+}
 """
 
 # ==========================================
@@ -98,13 +137,20 @@ def configurar_yt_dlp(plataforma='youtube'):
         # Esto corrige el fallo reportado en el PDF sobre "AssertionError".
         # [CORRECCIÓN]: Usamos Chrome 110. Según el PDF, es la versión "Funcional" 
         # cuando el entorno Linux no soporta las últimas firmas criptográficas.
-        # 1. SUPLANTACIÓN: Chrome 110 (Estándar de estabilidad para Linux/GitHub Actions)
-        # Si usamos una versión más nueva (ej. 120), faltan librerías criptográficas.
-        opciones['impersonate'] = ImpersonateTarget(
-            client='chrome',
-            version='110',
-            os='windows'
-        )
+        # 1. SUPLANTACIÓN AVANZADA: Perfil chrome-116:windows-10 (Cero AssertionError)
+        try:
+            opciones['impersonate'] = ImpersonateTarget.from_str('chrome-116:windows-10')
+        except:
+            pass # Fallback silencioso si la librería no soporta from_str aún
+            
+        # Alteración morfológica inyectada de Capa de Transporte Superior
+        opciones['http_headers'] = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
+            'Referer': 'https://www.tiktok.com/'
+        }
         
         # 2. INYECCIÓN DE API MÓVIL:
         # Engañamos a TikTok para que crea que somos una App, no un navegador web.
@@ -200,8 +246,24 @@ def obtener_candidatos_mixtos(canal_url, plataforma, ruta_base_expertos, nombre_
 
 def descargar_inteligencia_multimodal(video_url):
     """
-    Extrae Metadata técnica y activa la VISIÓN descargando el Thumbnail.
+    Extrae Metadata técnica y activa la VISIÓN descargando el Thumbnail con Minting Autónomo.
     """
+    video_id = video_url.split('v=')[-1] if 'v=' in video_url else video_url.split('/')[-1]
+    
+    # --- ACUÑACIÓN AUTÓNOMA IN-SITU (PDF pág. 8) ---
+    print(f"🤖 [MINTING]: Acuñando pasaporte PO_TOKEN in-situ para {video_id}...")
+    po_token, visitor_data = None, None
+    try:
+        provider = AutonomousPoTokenProvider()
+        po_token, visitor_data = asyncio.run(provider.mint_fresh_token(video_id))
+        if po_token: print("✅ [MINTING]: Pasaporte criptográfico generado con éxito.")
+        else: print("⚠️ [MINTING]: Falló la extracción. Usando fallback.")
+    except Exception as e:
+        print(f"⚠️ [MINTING]: Error crítico en acuñación: {e}")
+
+    # Enrutamiento Residencial Opcional (PDF Evasión pág. 4)
+    proxy_url = os.environ.get('PROXY_URL', None)
+
     opciones = {
         'quiet': True, 
         'skip_download': True,
@@ -209,20 +271,24 @@ def descargar_inteligencia_multimodal(video_url):
         'sub_lang': 'en,es',
         'writethumbnail': True,
         'outtmpl': 'temp_vision',
-        # ACTIVAMOS COOKIES: Son vitales para saltar el muro de YouTube
         'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
-        # USAMOS CLIENTE WEB: Es el único que acepta cookies al 100%
+        'js_runtimes': 'node',
+        'proxy': proxy_url, # Soporte para proxy residencial SOCKS5 si existe
         'extractor_args': {
             'youtube': {
-                'player_client': ['web'],
-                'po_token': 'web+mn' # Intento de bypass automático del n-challenge
+                'player_client': ['mweb', 'tv', 'default'],
+                'po_token': f"mweb+{po_token}" if po_token else "web+mn",
+                'formats': 'missing_pot'
             }
         },
-        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
+        'user_agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
     }
+
+    if proxy_url:
+        opciones['proxy'] = proxy_url
     
     # Limpiamos rastros visuales previos
-    for f in glob.glob("temp_vision*"): 
+    for f in glob.glob("temp_vision*"):
         try: os.remove(f)
         except: pass
 
@@ -239,43 +305,38 @@ def descargar_inteligencia_multimodal(video_url):
         return info, imagen_path
 
 def obtener_modelo_valido(client, target_alias="gemini-1.5-flash"):
-    """
-    [PROTOCOLO DE RESILIENCIA]: Basado en Deep Research.
-    Usa 'supported_actions' para evitar el error 404 en la API v1beta.
-    """
+    """[PROTOCOLO DE RESILIENCIA]: Usa 'supported_actions' según PDF pág. 7."""
     try:
-        # 1. Interrogamos el catálogo real
         modelos = list(client.models.list())
-        
-        # 2. Filtramos usando el nuevo estándar 'supported_actions'
         candidatos = [
             m for m in modelos 
             if target_alias in m.name and "generateContent" in m.supported_actions
         ]
-        
         if candidatos:
-            # Ordenamos para preferir versiones estables (como -002)
             candidatos.sort(key=lambda x: x.name, reverse=True)
-            nombre_validado = candidatos[0].name
-            print(f"📡 [IA CATALOG]: Modelo validado encontrado: {nombre_validado}")
-            return nombre_validado
-        
-        # Fallback: buscamos cualquier flash que funcione
-        fallback = [m for m in modelos if "flash" in m.name and "generateContent" in m.supported_actions]
-        if fallback:
-            return fallback[0].name
-            
-        return f"models/{target_alias}" 
+            return candidatos[0].name
+        return f"models/{target_alias}"
     except Exception as e:
         print(f"⚠️ Error en descubrimiento: {e}")
         return f"models/{target_alias}"
 
 # ==========================================
-# 🚀 MOTOR PRINCIPAL OMEGA V20.1 (ESTABILIDAD & BOOTSTRAP)
+# 🚀 MOTOR PRINCIPAL OMEGA V21.0 (AUTONOMÍA & FÉNIX)
 # ==========================================
 def ejecutar_obrero():
-    print(f"🚀 [SINC V20.1] Iniciando Protocolo Omnisciente | Fábrica de Expertos")
+    print(f"🚀 [SINC V21.0] Iniciando Protocolo de Autonomía Total")
     
+    # --- AUTO-ACTUALIZACIÓN PROACTIVA (PDF pág. 9) ---
+    try:
+        import subprocess
+        print("📡 [SISTEMA]: Purgando caché de red y descargando antídotos...")
+        # Rutina 1: Limpiar caché de red para evitar sesiones corruptas
+        subprocess.run(["yt-dlp", "--rm-cache-dir"], check=False)
+        # Rutina 2: Actualizar a la última versión nocturna
+        subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp[nightly]"], check=True)
+    except Exception as e:
+        print(f"⚠️ Aviso: Omitiendo auto-actualización ({e})")
+
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key: sys.exit("❌ ERROR: API KEY no encontrada")
     
