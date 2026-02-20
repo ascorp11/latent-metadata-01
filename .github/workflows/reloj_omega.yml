@@ -18,6 +18,12 @@ jobs:
         with:
           fetch-depth: 0 # Recupera toda la historia para comparativa de evolución
 
+      - name: 🐍 Configuración de Entorno (Python 3.11)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
       - name: 🛡️ Infraestructura de Atestación (Dependencias Headless)
         run: |
           sudo apt-get update
@@ -45,10 +51,10 @@ jobs:
         run: |
           echo "${{ secrets.YOUTUBE_COOKIES }}" > cookies.txt
           
-      - name: ⚡ Ejecución Obrero V16 (Modo Ruleta & Sigilo)
+      - name: ⚡ Ejecución Obrero V21.0 (Modo Autónomo & Sigilo)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python obrero_omega.py
+        run: xvfb-run -a python obrero_omega.py
 
       - name: 💾 Persistencia de Datos (Auto-Commit)
         run: |
