@@ -263,8 +263,11 @@ async def descargar_inteligencia_multimodal(video_url):
         print(f"🤖 [MINTING]: Acuñando pasaporte PO_TOKEN in-situ para {video_id}...")
         try:
             provider = AutonomousPoTokenProvider()
-            po_token = await provider.mint_fresh_token(video_id)
+            # Vector 6: Temporizador de muerte de 45s para evitar procesos zombies
+            po_token = await asyncio.wait_for(provider.mint_fresh_token(video_id), timeout=45.0)
             if po_token: print("✅ [MINTING]: Pasaporte criptográfico generado.")
+        except asyncio.TimeoutError:
+            print("⚠️ [MINTING]: Tiempo agotado. Procediendo con modo sigilo estándar.")
         except Exception as e:
             print(f"⚠️ [MINTING]: Falla estructural: {e}")
 
@@ -279,9 +282,14 @@ async def descargar_inteligencia_multimodal(video_url):
         'writethumbnail': True,
         'outtmpl': 'temp_vision',
         'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
-        # Vector 4: Contrato de diccionario anidado estricto
+        # --- BLINDAJE DE RED (NUEVO) ---
+        'socket_timeout': 10,        # Si en 10s no hay respuesta, aborta conexión
+        'retries': 2,                # Máximo 2 reintentos, no más bucles infinitos
+        'continuedl': False,         # No intentar retomar descargas fallidas
+        'no_color': True,
+        # ------------------------------
         'js_runtimes': { 'node': {} },
-        'proxy': proxy_url, # Soporte para proxy residencial SOCKS5 si existe
+        'proxy': proxy_url, 
         'extractor_args': {
             'youtube': {
                 'player_client': ['mweb', 'tv', 'default'],
