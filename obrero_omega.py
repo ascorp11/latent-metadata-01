@@ -6,6 +6,8 @@ import random
 import glob
 import re  # Vector 5: Expresiones regulares
 from datetime import datetime
+import contextlib # [SRE] Requerido para el apagado elegante (Graceful Shutdown)
+from datetime import datetime
 from google import genai
 from google.genai import types
 import yt_dlp
@@ -38,49 +40,44 @@ class AutonomousPoTokenProvider:
             page = await self.browser.get(url)
             await asyncio.sleep(4.5)
             
-            try:
-                # Envoltura temporal para prevenir bloqueos infinitos
-                nodos_iframe = await asyncio.wait_for(page.select_all('iframe'), timeout=15.0)
-                if nodos_iframe and len(nodos_iframe) > 0:
-                    estructura_nativa_cdp = nodos_iframe[0].attrs
-                    # Transformación algorítmica segura de Lista Plana a Diccionario (SRE PDF Pág. 13)
-                    if isinstance(estructura_nativa_cdp, list):
-                        diccionario_seguro = dict(zip(estructura_nativa_cdp[0::2], estructura_nativa_cdp[1::2]))
-                    else:
-                        diccionario_seguro = estructura_nativa_cdp
-                    url_origen = diccionario_seguro.get('src', '')
-            except asyncio.TimeoutError:
-                print("⚠️ Timeout esperando iframes en nodriver. Continuación táctica.")
-            except Exception as e:
-                print(f"⚠️ Error CDP recuperable en DOM: {e}")
-
-            extraction_script = """
-            (function() {
+            # --- GANZÚA UNIVERSAL (SRE PDF Pág. 10) ---
+            # Delegamos la búsqueda del DOM al motor V8, eludiendo la lista plana del protocolo CDP.
+            script_extraccion_iframe = """
+            (() => {
                 try {
-                    return {
-                        'po_token': window.serviceIntegrityDimensions?.poToken || (typeof ytcfg !== 'undefined' ? ytcfg.get('PO_TOKEN') : null)
-                    };
-                } catch (e) { return null; }
-            })()
+                    const elemento = document.querySelector('iframe');
+                    if (!elemento) return null;
+                    return elemento.getAttribute('src');
+                } catch (error) { return null; }
+            })();
             """
-            result = await page.evaluate(extraction_script)
-            if result and result.get('po_token'):
-                return result['po_token']
-            return None
-        except Exception as e:
-            print(f"⚠️ Error CDP Crítico: {e}")
+            url_origen = await page.evaluate(script_extraccion_iframe)
             return None
         finally:
-            # BLOQUE INNEGOCIABLE: Interruptor de Hombre Muerto (SRE PDF Pág. 14-15)
+            # PROTOCOLO ESTRICTO DE GRACEFUL SHUTDOWN (SRE PDF Pág. 6)
             if self.browser:
-                try:
+                # Fase 1 y 2: Cierre orgánico de pestañas y WebSocket
+                if hasattr(self.browser, 'tabs'):
+                    for tab in self.browser.tabs:
+                        with contextlib.suppress(Exception):
+                            await tab.close()
+                if hasattr(self.browser, 'connection') and self.browser.connection is not None:
+                    with contextlib.suppress(Exception):
+                        await self.browser.connection.aclose()
+                
+                # Fase 3: Detención nominal
+                with contextlib.suppress(Exception):
                     self.browser.stop()
-                except Exception: pass
-                # Aniquilación a nivel de kernel para evitar zombies y proteger el Event Loop
+                    
+                # Fase 4: Aniquilación determinista con sincronización asíncrona
                 if hasattr(self.browser, '_process') and self.browser._process is not None:
                     try:
                         self.browser._process.terminate()
-                        self.browser._process.wait()
+                        # CRÍTICO: Espera bloqueante bajo el Event Loop activo
+                        await asyncio.wait_for(self.browser._process.wait(), timeout=5.0)
+                    except asyncio.TimeoutError:
+                        self.browser._process.kill()
+                        await self.browser._process.wait()
                     except Exception: pass
 
 # ==========================================
