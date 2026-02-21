@@ -33,6 +33,7 @@ jobs:
           sudo apt install -y brave-browser xvfb wireguard-tools resolvconf curl
 
       - name: 🌐 Setup Cloudflare WARP (Evasión de ASN Azure)
+        timeout-minutes: 2
         run: |
           curl -fsSL https://github.com/ViRb3/wgcf/releases/download/v2.2.22/wgcf_2.2.22_linux_amd64 -o wgcf
           chmod +x wgcf
