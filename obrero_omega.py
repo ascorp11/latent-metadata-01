@@ -25,9 +25,10 @@ class AutonomousPoTokenProvider:
     def __init__(self):
         self.browser = None
         self.config = {
-            'headless': False, # Vector 3: Xvfb requiere False
-            'sandbox': False,  # Vector 3: Apaga el aislamiento root
-            'browser_args': ["--disable-dev-shm-usage", "--disable-gpu"]
+            'browser_executable_path': '/usr/bin/brave-browser', # [SRE] Subrogación de motor base
+            'headless': True, # [SRE] Brave nativo opera seguro en headless
+            'sandbox': False, 
+            'browser_args': ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
         }
 
     async def mint_fresh_token(self, video_id):
@@ -37,11 +38,22 @@ class AutonomousPoTokenProvider:
             page = await self.browser.get(url)
             await asyncio.sleep(4.5)
             
-            nodos_iframe = await page.select_all('iframe')
-            if nodos_iframe:
-                # Vector 5: Acceso seguro al diccionario attrs del primer nodo
-                url_origen = nodos_iframe[0].attrs.get('src', '')
-            
+            try:
+                # Envoltura temporal para prevenir bloqueos infinitos
+                nodos_iframe = await asyncio.wait_for(page.select_all('iframe'), timeout=15.0)
+                if nodos_iframe and len(nodos_iframe) > 0:
+                    estructura_nativa_cdp = nodos_iframe[0].attrs
+                    # Transformación algorítmica segura de Lista Plana a Diccionario (SRE PDF Pág. 13)
+                    if isinstance(estructura_nativa_cdp, list):
+                        diccionario_seguro = dict(zip(estructura_nativa_cdp[0::2], estructura_nativa_cdp[1::2]))
+                    else:
+                        diccionario_seguro = estructura_nativa_cdp
+                    url_origen = diccionario_seguro.get('src', '')
+            except asyncio.TimeoutError:
+                print("⚠️ Timeout esperando iframes en nodriver. Continuación táctica.")
+            except Exception as e:
+                print(f"⚠️ Error CDP recuperable en DOM: {e}")
+
             extraction_script = """
             (function() {
                 try {
@@ -56,11 +68,20 @@ class AutonomousPoTokenProvider:
                 return result['po_token']
             return None
         except Exception as e:
-            print(f"⚠️ Error CDP: {e}")
+            print(f"⚠️ Error CDP Crítico: {e}")
             return None
         finally:
+            # BLOQUE INNEGOCIABLE: Interruptor de Hombre Muerto (SRE PDF Pág. 14-15)
             if self.browser:
-                self.browser.stop()
+                try:
+                    self.browser.stop()
+                except Exception: pass
+                # Aniquilación a nivel de kernel para evitar zombies y proteger el Event Loop
+                if hasattr(self.browser, '_process') and self.browser._process is not None:
+                    try:
+                        self.browser._process.terminate()
+                        self.browser._process.wait()
+                    except Exception: pass
 
 # ==========================================
 # 🧠 CEREBRO: PROMPT MAESTRO (OMNISCIENTE - MÁXIMA DENSIDAD)
@@ -211,13 +232,16 @@ def obtener_candidatos_mixtos(canal_url, plataforma, ruta_base_expertos, nombre_
             info = ydl.extract_info(canal_url, download=False)
             if not info or 'entries' not in info: return []
             
-            todos = list(info['entries'])
-            if not todos: return []
+            entradas_crudas = info.get('entries', [])
+            if not entradas_crudas: return []
             
             objetivos = []
-            # --- FILTRO INTELIGENTE V17.5 (Corrige error de SurferSEO) ---
-            # Aceptamos 'video', 'url' y 'url_transparent' para que no se escapen videos en listas planas
-            todos = [v for v in todos if v.get('_type', 'video') in ['video', 'url', 'url_transparent']]
+            # --- FILTRO DE CONFIANZA CERO (SRE PDF Pág. 4 y 6) ---
+            # Evade el error NoneType y nodos corruptos exigiendo la existencia de la clave primaria 'id'
+            todos = [
+                v for v in entradas_crudas 
+                if v is not None and isinstance(v, dict) and v.get('_type', 'video') in ['video', 'url', 'url_transparent'] and v.get('id') is not None
+            ]
             # --- VÁLVULA DE SEGURIDAD (INSERCIÓN CRÍTICA) ---
             if not todos:
                 print(f"⚠️ [AVISO]: No se encontraron videos válidos para {nombre_experto}. Saltando...")
@@ -470,11 +494,29 @@ async def ejecutar_obrero():
 
                     # CORRECCIÓN DE MODELO: Usamos la versión estable 'gemini-1.5-flash'
                     # Google eliminó la etiqueta 'latest' para la API gratuita v1beta
-                    # Vector 2: Enrutamiento explícito a la Generación 2.5
-                    response = client.models.generate_content(
-                        model='gemini-2.5-flash',
-                        contents=inputs_gemini
-                    )                  
+                    # Vector 2: Paciencia Programada y Retroceso Exponencial (SRE PDF Pág. 9-10)
+                    intentos_maximos = 6
+                    base_retraso = 2.0
+                    for intento in range(intentos_maximos):
+                        try:
+                            response = client.models.generate_content(
+                                model='gemini-2.5-flash',
+                                contents=inputs_gemini
+                            )
+                            break # Éxito en la respuesta, rompemos el bucle de espera
+                        except Exception as e_cuota:
+                            if "429" in str(e_cuota) or "RESOURCE_EXHAUSTED" in str(e_cuota):
+                                if intento < intentos_maximos - 1:
+                                    # Full Jitter: Espera matemática desincronizada
+                                    limite_truncado = min(base_retraso * (2 ** intento), 65.0)
+                                    retraso = random.uniform(1.0, limite_truncado)
+                                    print(f"⚠️ Consultor Gemini ocupado (429). Esperando en sala {retraso:.1f}s (Intento {intento+1}/{intentos_maximos})...")
+                                    await asyncio.sleep(retraso)
+                                else:
+                                    print("❌ Paciencia agotada. El consultor no responde. Omitiendo video temporalmente.")
+                                    raise e_cuota
+                            else:
+                                raise e_cuota # Error semántico, no de cuota                  
                     
                     # --- 7. MOTOR DE GUARDADO V17.3 (EXPERTO + NEXO + CRONÓMETRO) ---
                     
