@@ -38,7 +38,7 @@
 | **Sandro Melendez** | VENTA | [https://www.youtube.com/@SANDROMEL%C3%89NDEZ-u2t/videos] | [https://www.tiktok.com/@sandro_melendez?_r=1&_t=ZS-945gfqz9e4e] | 🔄 Activo |
 | **--- EXPERTOS EN NEGOCIOS Y EMPRENDIMIENTOS  ---** | --- | --- | --- | --- |
 | **Sandro Melendez** | NEGOCIOS Y EMPRENDIMIENTO | [https://www.youtube.com/@SANDROMEL%C3%89NDEZ-u2t/videos] | [https://www.tiktok.com/@sandro_melendez?_r=1&_t=ZS-945gfqz9e4e] | 🔄 Activo |
-| **Marcus Dantus** | NEGOCIOS Y EMPRENDIMIENTO | - | [https://www.tiktok.com/search?q=marcus%20dantus&t=1771637253766] | 🔄 Activo |
+| **Marcus Dantus** | NEGOCIOS Y EMPRENDIMIENTO | - | [https://www.tiktok.com/@mdantus58] | 🔄 Activo |
 | **Spencer Hoffmann** | NEGOCIOS Y EMPRENDIMIENTO | [https://https://www.youtube.com/@SpencerHoffmann/videos] | [https://www.tiktok.com/@spencerhoffmann] | 🔄 Activo |
 | **Fernando Anzures** | NEGOCIOS Y EMPRENDIMIENTO | [https://www.youtube.com/@Fanzures/videos] | [https://www.tiktok.com/@fanzures] | 🔄 Activo |
 | **Emprende Aprendiendo** | NEGOCIOS Y EMPRENDIMIENTO | - | [https://www.youtube.com/@EmprendeAprendiendo/videos] | 🔄 Activo |
