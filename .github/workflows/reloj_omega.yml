@@ -51,9 +51,13 @@ jobs:
           pip install nodriver curl_cffi yt-dlp google-genai pillow
 
       - name: 🍪 Inyección de Credenciales (Cookies)
-        # Genera el archivo cookies.txt a partir del Secreto configurado en GitHub
+        env:
+          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
+          TIKTOK_COOKIES: ${{ secrets.TIKTOK_COOKIES }}
         run: |
-          echo "${{ secrets.YOUTUBE_COOKIES }}" > cookies.txt
+          echo "$YOUTUBE_COOKIES" > cookies.txt
+          echo "" >> cookies.txt
+          echo "$TIKTOK_COOKIES" >> cookies.txt
           
       - name: ⚡ Ejecución Obrero V21.0 (Modo Autónomo & Sigilo)
         env:
