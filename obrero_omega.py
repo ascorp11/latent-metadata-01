@@ -164,13 +164,16 @@ def configurar_yt_dlp(plataforma='youtube'):
         except:
             pass # Fallback silencioso si la librería no soporta from_str aún
             
-        # Alteración morfológica inyectada de Capa de Transporte Superior
+        # [SRE] Evasión de Datacenter: Suplantación de iPhone 15 Pro Max (Capa Móvil)
         opciones['http_headers'] = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1',
+            'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br',
             'Connection': 'keep-alive',
-            'Referer': 'https://www.tiktok.com/'
+            'Referer': 'https://www.tiktok.com/',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none'
         }
         
         # 2. INYECCIÓN DE API MÓVIL:
@@ -314,7 +317,8 @@ async def descargar_inteligencia_multimodal(video_url):
         'extractor_args': {
             'youtube': {
                 'player_client': ['mweb', 'tv', 'default'],
-                'po_token': f"mweb+{po_token}" if po_token else "web+mn",
+                # [SRE] Envoltura en lista para evitar iteración por caracteres y Warning "got w,e,b..."
+                'po_token': [f"mweb+{po_token}" if po_token else "web+mn"],
                 'formats': 'missing_pot'
             }
         },
