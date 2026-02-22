@@ -49,30 +49,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install nodriver curl_cffi yt-dlp google-genai pillow bgutil-ytdlp-pot-provider
 
-      - name: 🍪 Inyección de Credenciales (Cookies)
-        env:
-          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
-          TIKTOK_COOKIES: ${{ secrets.TIKTOK_COOKIES }}
+      - name: ⚙️ Motor YouTube Generador BotGuard (Docker)
         run: |
-          echo "$YOUTUBE_COOKIES" > cookies.txt
-          echo "" >> cookies.txt
-          echo "$TIKTOK_COOKIES" >> cookies.txt
-
-      - name: ⚙️ Motor YouTube Generador BotGuard (Rust)
-        run: |
-          wget https://github.com/jim60105/bgutil-ytdlp-pot-provider-rs/releases/latest/download/bgutil-pot-linux-x86_64
-          chmod +x bgutil-pot-linux-x86_64
-          sudo mv bgutil-pot-linux-x86_64 /usr/local/bin/bgutil-pot
-          bgutil-pot server --host 127.0.0.1 --port 4416 > /dev/null 2>&1 &
-          sleep 3
-          curl -s http://127.0.0.1:4416 || (echo "❌ Error: Motor Rust falló" && exit 1)
+          docker run -d --name proveedor-tokens-youtube -p 4416:4416 --restart always ghcr.io/jim60105/bgutil-pot:latest server --host 0.0.0.0 --port 4416
+          sleep 10
+          curl -s http://127.0.0.1:4416 || (echo "❌ Error: Motor YouTube falló" && exit 1)
           echo "✅ Motor YouTube operativo en puerto 4416"
 
       - name: 🐳 Motor TikTok Falsificador de Firmas (Docker)
         run: |
           git clone https://github.com/carcabot/tiktok-signature.git
           cd tiktok-signature
-          docker compose up -d --wait
+          docker compose up -d
           sleep 10
           docker ps | grep tiktok-signature || (echo "❌ Error: Motor Docker falló" && exit 1)
           echo "✅ Motor TikTok operativo localmente"
