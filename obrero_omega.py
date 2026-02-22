@@ -17,68 +17,31 @@ from PIL import Image
 import asyncio
 import logging
 
-try:
-    import nodriver as nd
-except ImportError:
-    print("⚠️ 'nodriver' no está instalado. El Minting autónomo fallará.")
+# [SRE] Arquitectura 'nodriver' erradicada por directiva de rendimiento (PDF Pág. 1 y 5).
+# La delegación criptográfica ahora pertenece al microservicio local en Rust.
 
-class AutonomousPoTokenProvider:
-    """Servicio de Ingeniería Inversa para Acuñación de Tokens de Origen (PDF pág. 6)."""
+# [SRE] Capa de Aplicación TikTok: Microservicio de Atestación (PDF Pág. 11)
+from curl_cffi import requests as curl_requests
+
+class ExtractorEvasivoTikTok:
     def __init__(self):
-        self.browser = None
-        self.config = {
-            'browser_executable_path': '/usr/bin/brave-browser', # [SRE] Subrogación de motor base
-            'headless': True, # [SRE] Brave nativo opera seguro en headless
-            'sandbox': False, 
-            'browser_args': ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
-        }
+        self.url_firmas = "http://127.0.0.1:8080/signature"
+        self.sesion = curl_requests.Session(impersonate="chrome124")
+        self.sesion.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Referer": "https://www.tiktok.com/"
+        })
 
-    async def mint_fresh_token(self, video_id):
+    def firmar_peticion(self, url_objetivo):
         try:
-            self.browser = await nd.start(**self.config)
-            url = f"https://www.youtube.com/embed/{video_id}"
-            page = await self.browser.get(url)
-            await asyncio.sleep(4.5)
-            
-            # --- GANZÚA UNIVERSAL (SRE PDF Pág. 10) ---
-            # Delegamos la búsqueda del DOM al motor V8, eludiendo la lista plana del protocolo CDP.
-            script_extraccion_iframe = """
-            (() => {
-                try {
-                    const elemento = document.querySelector('iframe');
-                    if (!elemento) return null;
-                    return elemento.getAttribute('src');
-                } catch (error) { return null; }
-            })();
-            """
-            url_origen = await page.evaluate(script_extraccion_iframe)
+            res = curl_requests.post(
+                self.url_firmas, 
+                json={"url": url_objetivo, "userAgent": self.sesion.headers["User-Agent"]}, 
+                impersonate="chrome124"
+            )
+            return res.json().get("data", {}).get("signed_url") if res.status_code == 200 else None
+        except:
             return None
-        finally:
-            # PROTOCOLO ESTRICTO DE GRACEFUL SHUTDOWN (SRE PDF Pág. 6)
-            if self.browser:
-                # Fase 1 y 2: Cierre orgánico de pestañas y WebSocket
-                if hasattr(self.browser, 'tabs'):
-                    for tab in self.browser.tabs:
-                        with contextlib.suppress(Exception):
-                            await tab.close()
-                if hasattr(self.browser, 'connection') and self.browser.connection is not None:
-                    with contextlib.suppress(Exception):
-                        await self.browser.connection.aclose()
-                
-                # Fase 3: Detención nominal
-                with contextlib.suppress(Exception):
-                    self.browser.stop()
-                    
-                # Fase 4: Aniquilación determinista con sincronización asíncrona
-                if hasattr(self.browser, '_process') and self.browser._process is not None:
-                    try:
-                        self.browser._process.terminate()
-                        # CRÍTICO: Espera bloqueante bajo el Event Loop activo
-                        await asyncio.wait_for(self.browser._process.wait(), timeout=5.0)
-                    except asyncio.TimeoutError:
-                        self.browser._process.kill()
-                        await self.browser._process.wait()
-                    except Exception: pass
 
 # ==========================================
 # 🧠 CEREBRO: PROMPT MAESTRO (OMNISCIENTE - MÁXIMA DENSIDAD)
@@ -152,44 +115,17 @@ def configurar_yt_dlp(plataforma='youtube'):
         'lazy_playlist': True,
     }
 
-    # --- PROTOCOLO DE EVASIÓN TIKTOK 2026 (Basado en Deep Research) ---
+# [SRE] Evasión CFFI + Firmas Docker para TikTok (PDF Pág. 11)
     if plataforma == 'tiktok':
-        # 1. SUPLANTACIÓN AVANZADA: Usamos un OBJETO, no texto simple.
-        # Esto corrige el fallo reportado en el PDF sobre "AssertionError".
-        # [CORRECCIÓN]: Usamos Chrome 110. Según el PDF, es la versión "Funcional" 
-        # cuando el entorno Linux no soporta las últimas firmas criptográficas.
-        # 1. SUPLANTACIÓN AVANZADA: Perfil chrome-116:windows-10 (Cero AssertionError)
-        try:
-            opciones['impersonate'] = ImpersonateTarget.from_str('chrome-116:windows-10')
-        except:
-            pass # Fallback silencioso si la librería no soporta from_str aún
-            
-        # [SRE] Evasión de Datacenter: Suplantación de iPhone 15 Pro Max (Capa Móvil)
+        opciones['impersonate'] = ImpersonateTarget.from_str('chrome-124:windows-10')
         opciones['http_headers'] = {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1',
-            'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Connection': 'keep-alive',
-            'Referer': 'https://www.tiktok.com/',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Referer': 'https://www.tiktok.com/'
         }
-        
-        # 2. INYECCIÓN DE API MÓVIL:
-        # Engañamos a TikTok para que crea que somos una App, no un navegador web.
-        opciones['extractor_args'] = {
-            'tiktok': {
-                'api_hostname': 'api22-normal-c-useast2a.tiktokv.com',
-                'app_info': '7355728856979392518' # ID genérico de App
-            }
-        }
-        
-        # 3. LÍMITE DE SEGURIDAD:
-        # Solo pedimos los 15 primeros videos para no activar alarmas.
+        # Enrutamiento de peticiones a través de la librería CFFI para evadir TLS JA3
+        opciones['extractor_args'] = {'tiktok': {'app_info': '7355728856979392518'}}
         opciones['playlist_items'] = '1-15'
-        # IMPORTANTE: False para asegurar orden cronológico (Nuevo -> Viejo)
-        opciones['playlistreverse'] = False 
+        opciones['playlistreverse'] = False
     
     else:
         # Configuración estándar para YouTube (sin cambios)
@@ -282,48 +218,45 @@ async def descargar_inteligencia_multimodal(video_url):
     video_id = video_url.split('v=')[-1] if 'v=' in video_url else video_url.split('/')[-1]
     po_token = None
     
-    # Vector 5: Freno de emergencia. Nunca aplicar Minting a TikTok
-    if validar_topologia_youtube(video_id):
-        print(f"🤖 [MINTING]: Acuñando pasaporte PO_TOKEN in-situ para {video_id}...")
-        try:
-            provider = AutonomousPoTokenProvider()
-            # Vector 6: Temporizador de muerte de 45s para evitar procesos zombies
-            po_token = await asyncio.wait_for(provider.mint_fresh_token(video_id), timeout=45.0)
-            if po_token: print("✅ [MINTING]: Pasaporte criptográfico generado.")
-        except asyncio.TimeoutError:
-            print("⚠️ [MINTING]: Tiempo agotado. Procediendo con modo sigilo estándar.")
-        except Exception as e:
-            print(f"⚠️ [MINTING]: Falla estructural: {e}")
+    # [SRE] Extracción Zero-Click activa. El pasaporte PO_TOKEN se solicitará 
+    # dinámicamente al Motor BotGuard (Rust) en el puerto 4416 durante la petición.
 
     # Enrutamiento Residencial Opcional (PDF Evasión pág. 4)
     proxy_url = os.environ.get('PROXY_URL', None)
 
-    opciones = {
-        'quiet': True, 
+    # [SRE] Enrutamiento Dinámico de Armaduras (TikTok vs YouTube)
+    plataforma_detectada = 'tiktok' if 'tiktok' in video_url.lower() else 'youtube'
+    opciones = configurar_yt_dlp(plataforma_detectada)
+
+    # [SRE] Invocación del Motor Docker para Firmar la URL de TikTok (PDF Pág. 13)
+    if plataforma_detectada == 'tiktok':
+        url_firmada = ExtractorEvasivoTikTok().firmar_peticion(video_url)
+        if url_firmada: 
+            video_url = url_firmada
+            print("✅ [SIGILO] URL de TikTok firmada criptográficamente por Docker.")
+    
+    # Parámetros universales de descarga visual y sigilo
+    opciones.update({
         'skip_download': True,
         'writeautomaticsub': True, 
         'sub_lang': 'en,es',
         'writethumbnail': True,
         'outtmpl': 'temp_vision',
         'cookiefile': 'cookies.txt' if os.path.exists('cookies.txt') else None,
-        # --- BLINDAJE DE RED (NUEVO) ---
-        'socket_timeout': 10,        # Si en 10s no hay respuesta, aborta conexión
-        'retries': 2,                # Máximo 2 reintentos, no más bucles infinitos
-        'continuedl': False,         # No intentar retomar descargas fallidas
+        'socket_timeout': 10,
+        'retries': 2,
+        'continuedl': False,
         'no_color': True,
-        # ------------------------------
-        'js_runtimes': { 'node': {} },
-        'proxy': proxy_url, 
-        'extractor_args': {
-            'youtube': {
-                'player_client': ['mweb', 'tv', 'default'],
-                # [SRE] Envoltura en lista para evitar iteración por caracteres y Warning "got w,e,b..."
-                'po_token': [f"mweb+{po_token}" if po_token else "web+mn"],
-                'formats': 'missing_pot'
-            }
-        },
-        'user_agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
-    }
+        'js_runtimes': { 'node': {} }
+    })
+
+    # Inyección de Armadura YouTube BotGuard (Motor Rust)
+    if plataforma_detectada == 'youtube':
+        opciones['extractor_args'] = {
+            'youtubetab': ['skip=webpage'],
+            'youtube': ['player_skip=webpage.configs', 'visitor_data=auto', 'player_client=mweb,default'],
+            'youtubepot': ['bgutilhttp:base_url=http://127.0.0.1:4416']
+        }
 
     if proxy_url:
         opciones['proxy'] = proxy_url
@@ -378,10 +311,22 @@ async def ejecutar_obrero():
     except Exception as e:
         print(f"⚠️ Aviso: Omitiendo auto-actualización ({e})")
 
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key: sys.exit("❌ ERROR: API KEY no encontrada")
+    # Cargar el escuadrón de llaves (La Hidra)
+    llaves_gemini = []
+    for i in range(1, 7):
+        k = os.environ.get(f"GEMINI_KEY_{i}")
+        if k: llaves_gemini.append(k)
     
-    client = genai.Client(api_key=api_key)
+    # Fallback por si usan la llave vieja
+    if not llaves_gemini:
+        k_old = os.environ.get("GEMINI_API_KEY")
+        if k_old: llaves_gemini.append(k_old)
+        
+    if not llaves_gemini: sys.exit("❌ ERROR: No se encontró ninguna API KEY de Gemini")
+
+    llave_actual_idx = 0
+    client = genai.Client(api_key=llaves_gemini[llave_actual_idx])
+    print(f"🧠 [ESCUADRÓN GEMINI]: {len(llaves_gemini)} cerebros disponibles. Iniciando con Cerebro 1.")
     
     # --- PROTOCOLO DE BOOTSTRAP BLINDADO (PDF pág. 8) ---
     # Interroga el catálogo para evitar error 404 y asegura prefijo models/
@@ -496,7 +441,7 @@ async def ejecutar_obrero():
                     # CORRECCIÓN DE MODELO: Usamos la versión estable 'gemini-1.5-flash'
                     # Google eliminó la etiqueta 'latest' para la API gratuita v1beta
                     # Vector 2: Paciencia Programada y Retroceso Exponencial (SRE PDF Pág. 9-10)
-                    intentos_maximos = 6
+                    intentos_maximos = len(llaves_gemini) * 3 # 3 intentos por cada cerebro disponible
                     base_retraso = 2.0
                     for intento in range(intentos_maximos):
                         try:
@@ -508,16 +453,21 @@ async def ejecutar_obrero():
                         except Exception as e_cuota:
                             if "429" in str(e_cuota) or "RESOURCE_EXHAUSTED" in str(e_cuota):
                                 if intento < intentos_maximos - 1:
-                                    # Full Jitter: Espera matemática desincronizada
+                                    # Lógica de Blindaje Original: Full Jitter
                                     limite_truncado = min(base_retraso * (2 ** intento), 65.0)
                                     retraso = random.uniform(1.0, limite_truncado)
-                                    print(f"⚠️ Consultor Gemini ocupado (429). Esperando en sala {retraso:.1f}s (Intento {intento+1}/{intentos_maximos})...")
+                                    
+                                    # NUEVO: Rotación Táctica de Cerebros
+                                    llave_actual_idx = (llave_actual_idx + 1) % len(llaves_gemini)
+                                    client = genai.Client(api_key=llaves_gemini[llave_actual_idx])
+                                    
+                                    print(f"⚠️ Cerebro saturado. Rotando al Cerebro {llave_actual_idx + 1}. Esperando sala {retraso:.1f}s (Intento {intento+1}/{intentos_maximos})...")
                                     await asyncio.sleep(retraso)
                                 else:
-                                    print("❌ Paciencia agotada. El consultor no responde. Omitiendo video temporalmente.")
+                                    print("❌ Paciencia agotada en todos los cerebros. Omitiendo video temporalmente.")
                                     raise e_cuota
                             else:
-                                raise e_cuota # Error semántico, no de cuota                  
+                                raise e_cuota # Error semántico, no de cuota             
                     
                     # --- 7. MOTOR DE GUARDADO V17.3 (EXPERTO + NEXO + CRONÓMETRO) ---
                     
