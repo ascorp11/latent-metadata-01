@@ -58,7 +58,7 @@ jobs:
           echo "" >> cookies.txt
           echo "$TIKTOK_COOKIES" >> cookies.txt
 
-      - name: ⚙️ Motor YouTube: Generador BotGuard (Rust)
+      - name: ⚙ Motor YouTube: Generador BotGuard (Rust)
         run: |
           wget https://github.com/jim60105/bgutil-ytdlp-pot-provider-rs/releases/latest/download/bgutil-pot-linux-x86_64
           chmod +x bgutil-pot-linux-x86_64
