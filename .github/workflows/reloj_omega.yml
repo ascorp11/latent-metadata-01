@@ -47,8 +47,7 @@ jobs:
       - name: 🛠️ Inyección de Herramientas (Arqueología Digital)
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install nodriver curl_cffi yt-dlp google-genai pillow
+          pip install nodriver curl_cffi yt-dlp google-genai pillow bgutil-ytdlp-pot-provider
 
       - name: 🍪 Inyección de Credenciales (Cookies)
         env:
@@ -58,21 +57,42 @@ jobs:
           echo "$YOUTUBE_COOKIES" > cookies.txt
           echo "" >> cookies.txt
           echo "$TIKTOK_COOKIES" >> cookies.txt
-          
+
+      - name: ⚙️ Motor YouTube: Generador BotGuard (Rust)
+        run: |
+          wget https://github.com/jim60105/bgutil-ytdlp-pot-provider-rs/releases/latest/download/bgutil-pot-linux-x86_64
+          chmod +x bgutil-pot-linux-x86_64
+          sudo mv bgutil-pot-linux-x86_64 /usr/local/bin/bgutil-pot
+          bgutil-pot server --host 127.0.0.1 --port 4416 &
+          sleep 3
+          curl -s http://127.0.0.1:4416 || (echo "❌ Error: Motor Rust falló" && exit 1)
+          echo "✅ Motor YouTube operativo en puerto 4416"  
+
+      - name: 🐳 Motor TikTok: Falsificador de Firmas (Docker)
+        run: |
+          git clone https://github.com/carcabot/tiktok-signature.git
+          cd tiktok-signature
+          docker compose up -d
+          sleep 10
+          docker ps | grep tiktok-signature || (echo "❌ Error: Motor Docker falló" && exit 1)
+          echo "✅ Motor TikTok operativo localmente"
+
       - name: ⚡ Ejecución Obrero V21.0 (Modo Autónomo & Sigilo)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_KEY_1: ${{ secrets.GEMINI_KEY_1 }}
+          GEMINI_KEY_2: ${{ secrets.GEMINI_KEY_2 }}
+          GEMINI_KEY_3: ${{ secrets.GEMINI_KEY_3 }}
+          GEMINI_KEY_4: ${{ secrets.GEMINI_KEY_4 }}
+          GEMINI_KEY_5: ${{ secrets.GEMINI_KEY_5 }}
+          GEMINI_KEY_6: ${{ secrets.GEMINI_KEY_6 }}
         run: xvfb-run -a python obrero_omega.py
 
       - name: 💾 Persistencia de Datos (Auto-Commit)
         run: |
           git config --local user.email "ascorp_bot@github.com"
           git config --local user.name "Obrero Omega Bot"
-          
-          # Añadimos explícitamente la Bóveda y catálogos
           git add ASCORP_KNOWLEDGE_VAULT/*
-          
-          # Lógica de Blindaje: Commit solo si hay cambios reales
           if ! git diff --staged --quiet; then
             git commit -m "🧠 SINC V16: Nuevos Hallazgos $(date +'%Y-%m-%d %H:%M')"
             git push
@@ -80,3 +100,18 @@ jobs:
           else
             echo "💤 Nada nuevo en este turno. El obrero sigue vigilando."
           fi
+
+      - name: 🚚 Envío Crítico a Google Drive
+        if: always()
+        env:
+          DRIVE_URL: ${{ secrets.DRIVE_WEBHOOK_URL }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq
+          find ASCORP_KNOWLEDGE_VAULT -name "*.md" -mmin -60 | while read file; do
+            filename=$(basename "$file")
+            content=$(cat "$file")
+            echo "Enviando $filename a Google Drive..."
+            curl -L -X POST "$DRIVE_URL" \
+              -H "Content-Type: application/json" \
+              -d "{\"filename\": \"$filename\", \"content\": $(echo \"$content\" | jq -Rs .)}"
+          done
