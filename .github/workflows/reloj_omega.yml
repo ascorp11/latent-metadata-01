@@ -63,7 +63,7 @@ jobs:
           wget https://github.com/jim60105/bgutil-ytdlp-pot-provider-rs/releases/latest/download/bgutil-pot-linux-x86_64
           chmod +x bgutil-pot-linux-x86_64
           sudo mv bgutil-pot-linux-x86_64 /usr/local/bin/bgutil-pot
-          bgutil-pot server --host 127.0.0.1 --port 4416 &
+          bgutil-pot server --host 127.0.0.1 --port 4416 > /dev/null 2>&1 &
           sleep 3
           curl -s http://127.0.0.1:4416 || (echo "❌ Error: Motor Rust falló" && exit 1)
           echo "✅ Motor YouTube operativo en puerto 4416"
@@ -72,7 +72,7 @@ jobs:
         run: |
           git clone https://github.com/carcabot/tiktok-signature.git
           cd tiktok-signature
-          docker compose up -d
+          docker compose up -d --wait
           sleep 10
           docker ps | grep tiktok-signature || (echo "❌ Error: Motor Docker falló" && exit 1)
           echo "✅ Motor TikTok operativo localmente"
