@@ -86,7 +86,7 @@ jobs:
           GEMINI_KEY_4: ${{ secrets.GEMINI_KEY_4 }}
           GEMINI_KEY_5: ${{ secrets.GEMINI_KEY_5 }}
           GEMINI_KEY_6: ${{ secrets.GEMINI_KEY_6 }}
-        run: xvfb-run -a python obrero_omega.py
+        run: xvfb-run -a python "🧠 CEREBRO- PROMPT MAESTRO V29.0.py"
 
       - name: 💾 Persistencia de Datos (Auto-Commit)
         run: |
