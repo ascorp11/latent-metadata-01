@@ -127,13 +127,17 @@ def configurar_yt_dlp(plataforma='youtube'):
         'ignoreerrors': True,
         'extract_flat': True,
         'lazy_playlist': True,
+        'external_downloader': 'aria2c',
+        # [SRE] Contención de Memoria y Disco (PDF Pág. 9)
+        'concurrent_fragment_downloads': 5,
+        'max_filesize': 524288000,
     }
 
 # [SRE] Evasión CFFI + Firmas Docker para TikTok (PDF Pág. 11)
     if plataforma == 'tiktok':
-        opciones['impersonate'] = ImpersonateTarget(client='chrome110')
+        opciones['impersonate'] = ImpersonateTarget.from_str("chrome-116:windows-10")
         opciones['http_headers'] = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
             'Referer': 'https://www.tiktok.com/'
         }
         # Enrutamiento de peticiones a través de la librería CFFI para evadir TLS JA3
