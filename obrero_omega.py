@@ -121,7 +121,7 @@ def configurar_yt_dlp(plataforma='youtube'):
 
 # [SRE] Evasión CFFI + Firmas Docker para TikTok (PDF Pág. 11)
     if plataforma == 'tiktok':
-        opciones['impersonate'] = ImpersonateTarget.from_str('chrome-124:windows-10')
+        opciones['impersonate'] = ImpersonateTarget(client='chrome110')
         opciones['http_headers'] = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
             'Referer': 'https://www.tiktok.com/'
