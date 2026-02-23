@@ -1,5 +1,3 @@
---- 🌐 HALLAZGO TRANSVERSAL ---
-ORIGEN: Daniel Marote
 # No confundas 😌 #ventas #negocios #mentor 
 
 ✅ [VANGUARDIA]

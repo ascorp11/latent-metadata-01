@@ -1,5 +1,3 @@
---- 🌐 HALLAZGO TRANSVERSAL ---
-ORIGEN: Daniel Marote
 # Atención Argentina 🇦🇷 #argentina🇦🇷 #cafe #puertomadero 
 
 ✅ [VANGUARDIA]
