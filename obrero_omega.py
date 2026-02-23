@@ -1,6 +1,16 @@
 import os
 import json
 import sys
+import traceback
+
+# [SRE] Verificación de Integridad CFFI (PDF Pág. 13)
+try:
+    import curl_cffi
+except ImportError as linker_error:
+    print(f"ERROR CRÍTICO DEL SISTEMA ANFITRIÓN: Fallo de enlace dinámico en curl_cffi.\n"
+          f"Diagnóstico Interno: {linker_error}\n"
+          f"Faltan dependencias libnss3 o libnspr4 en Ubuntu.", file=sys.stderr)
+    sys.exit(1)
 import time
 import random
 import glob
