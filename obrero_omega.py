@@ -1,6 +1,3 @@
-import os
-import json
-import sys
 import time
 import random
 import glob
@@ -26,7 +23,10 @@ from curl_cffi import requests as curl_requests
 class ExtractorEvasivoTikTok:
     def __init__(self):
         self.url_firmas = "http://127.0.0.1:8080/signature"
-        self.sesion = curl_requests.Session(impersonate="chrome124")
+        # [SRE] Enrutamiento Proxy SOCKS5 para enmascarar curl_cffi (PDF Pág. 12)
+        proxy_url = os.environ.get('PROXY_URL', None)
+        proxies_dict = {"http": proxy_url, "https": proxy_url} if proxy_url else None
+        self.sesion = curl_requests.Session(impersonate="chrome124", proxies=proxies_dict)
         self.sesion.headers.update({
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
             "Referer": "https://www.tiktok.com/"
