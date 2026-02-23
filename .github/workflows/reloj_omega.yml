@@ -43,10 +43,16 @@ jobs:
           warp-cli --accept-tos connect
           sleep 5
 
-      - name: 🛠️ Inyección de Herramientas (Arqueología Digital)
+      - name: 🛠️ Inyección de Herramientas (Requerimientos Dinámicos)
         run: |
           python -m pip install --upgrade pip
-          pip install nodriver curl_cffi yt-dlp google-genai pillow bgutil-ytdlp-pot-provider
+          echo "[SRE] Escaneando repositorio en busca de archivo de requerimientos..."
+          REQ_FILE=$(find . -type f -iname "*requirements*.txt" | head -n 1)
+          if [ -n "$REQ_FILE" ]; then
+            pip install -r "$REQ_FILE"
+          else
+            pip install curl_cffi yt-dlp google-genai pillow bgutil-ytdlp-pot-provider
+          fi
 
       - name: ⚙️ Motor YouTube Generador BotGuard (Docker)
         run: |
@@ -67,7 +73,7 @@ jobs:
           curl -s --socks5-hostname 127.0.0.1:40000 https://cloudflare.com/cdn-cgi/trace | grep -q "warp=on" || echo "⚠️ Advertencia: Túnel WARP tardando en enrutar."
           echo "✅ Diagnóstico Completo: Sistemas listos para operar."
 
-      - name: ⚡ Ejecución Obrero V21.0 (SRE Zero-Trust Pathing)
+      - name: ⚡ Descubrimiento Heurístico Seguro y Ejecución en Entorno Aislado
         shell: bash
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -82,16 +88,42 @@ jobs:
           ALL_PROXY: "socks5h://127.0.0.1:40000"
           NO_PROXY: "127.0.0.1,localhost,::1"
         run: |
-          echo "::group:: 🔍 SRE Diagnostics: Análisis Crudo de VFS y Codificación"
-          echo -e "\n[INFO] 1. Listado Estándar:"
-          ls -la
-          echo -e "\n[INFO] 2. Modo C-Escape (ls -lb):"
-          ls -la -b
-          echo -e "\n[INFO] 3. Modo Delimitación Estricta (ls -lQ):"
-          ls -la -Q
-          echo -e "\n[INFO] 4. Análisis Hexadecimal Absoluto (find + xxd):"
-          find . -maxdepth 1 -type f -print0 | xxd || true
-          echo "::endgroup::"
+          # Inicialización de Defensas de Entorno CI/CD
+          # Abortar pipeline en códigos de salida anómalos, expansión de variables vacías y fallos de sub-procesos
+          set -euo pipefail
+          echo "SRE INIT: Inicializando orquestador de descubrimiento heurístico híbrido..."
+          TARGET_FILE=""
+
+          # FASE 1: HEURÍSTICA DE ADN (Identificación Semántica y Contenido Estructural)
+          echo "========================================================================="
+          echo "Fase de Extracción Semántica: Auditando Inodos para firma 'ExtractorEvasivoTikTok'..."
+          while IFS= read -r -d '' file; do
+            TARGET_FILE="$file"
+            break # Optimización I/O de rendimiento O(1) tan pronto se localiza la huella
+          done < <(find . -type f -name "*.py" -exec grep -lZ "class ExtractorEvasivoTikTok:" {} +)
+
+          # FASE 2: HEURÍSTICA DE METADATOS (Identificación por Volumen Físico de Hardware)
+          echo "========================================================================="
+          if [ -z "$TARGET_FILE" ]; then
+            echo "Excepción de validación estructural (Fase 1 desierta). Conmutando a Análisis Volumétrico de Metadatos..."
+            while IFS=$'\t' read -r -d '' size file; do
+              TARGET_FILE="$file"
+              break
+            done < <(find . -type f -name "*.py" -printf "%s\t%p\0" | sort -z -nr)
+          fi
+
+          # COMPUERTA FINAL: Validación Transaccional Terminal de Variables Críticas
+          echo "========================================================================="
+          if [ -z "$TARGET_FILE" ]; then
+            echo "FALLO LETAL DEL SISTEMA: Arquitectura base desintegrada. Incapacidad operativa en la identificación del inodo objetivo principal (.py)." >&2
+            exit 1
+          fi
+          echo "SRE RESOLUCIÓN: Cadena de bloques procesada. Despacho focal validado a -> '$TARGET_FILE'"
+
+          # VECTOR DE EJECUCIÓN HEADLESS Y BLOQUEO DE MANIPULACIÓN (Ejecución Terminal)
+          echo "========================================================================="
+          echo "Desplegando instanciación X Virtual Framebuffer Server y enrutando sub-capas gráficas concurrentes..."
+          xvfb-run -a python "$TARGET_FILE"
 
           echo "::group:: 🚀 Operación de Resolución Estructural de Python"
           shopt -s nullglob
