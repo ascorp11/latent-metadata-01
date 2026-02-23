@@ -18,6 +18,11 @@ jobs:
         with:
           fetch-depth: 0 # Recupera toda la historia para comparativa de evolución
 
+      - name: 🧹 Expurgación Heurística de Disco (Defensa Anti-Exhaustion)
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/julia* /usr/local/.ghcup "$AGENT_TOOLSDIRECTORY"
+          sudo docker image prune --all --force
+
       - name: 🐍 Configuración de Entorno (Python 3.11)
         uses: actions/setup-python@v5
         with:
@@ -47,7 +52,7 @@ jobs:
         run: |
           echo "[SRE] Instalando dependencias criptográficas en el núcleo de Ubuntu..."
           sudo apt-get update -yq
-          sudo apt-get install -yq --no-install-recommends build-essential libnss3 libnspr4 libnss3-nssdb libtinfo5
+          sudo apt-get install -yq --no-install-recommends build-essential libnss3 libnspr4 libnss3-tools '^libtinfo[0-9]+$' ffmpeg aria2
           
           python -m pip install --upgrade pip
           echo "[SRE] Escaneando repositorio en busca de archivo de requerimientos..."
@@ -55,12 +60,12 @@ jobs:
           if [ -n "$REQ_FILE" ]; then
             pip install -r "$REQ_FILE"
           else
-            pip install curl_cffi yt-dlp google-genai pillow bgutil-ytdlp-pot-provider
+            pip install -U --pre "yt-dlp[default,curl-cffi]" google-genai pillow bgutil-ytdlp-pot-provider
           fi
 
       - name: ⚙️ Motor YouTube Generador BotGuard (Docker)
         run: |
-          docker run -d --name proveedor-tokens-youtube -p 4416:4416 --restart always ghcr.io/jim60105/bgutil-pot:latest server --host 0.0.0.0 --port 4416
+          docker run -d --name proveedor-tokens-youtube --memory="1024m" --cpus="1.0" -p 4416:4416 --restart always ghcr.io/jim60105/bgutil-pot:latest server --host 0.0.0.0 --port 4416
 
       - name: 🐳 Motor TikTok Falsificador de Firmas (Docker Seguro)
         run: |
@@ -76,6 +81,10 @@ jobs:
           curl -s http://127.0.0.1:8080/health > /dev/null || echo "⚠️ Advertencia: Puerto TikTok no respondió instantáneamente."
           curl -s --socks5-hostname 127.0.0.1:40000 https://cloudflare.com/cdn-cgi/trace | grep -q "warp=on" || echo "⚠️ Advertencia: Túnel WARP tardando en enrutar."
           echo "✅ Diagnóstico Completo: Sistemas listos para operar."
+
+      - name: 🧹 Purga de VFS en RAM (Defensa Anti-OOM)
+        run: |
+          sudo bash -c 'sync; echo 3 > /proc/sys/vm/drop_caches'
 
       - name: ⚡ Descubrimiento Heurístico Seguro y Ejecución en Entorno Aislado
         shell: bash
