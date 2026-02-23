@@ -12,11 +12,6 @@ permissions:
 jobs:
   trabajo_del_obrero:
     runs-on: ubuntu-24.04
-    services:
-      bgutil-pot:
-        image: ghcr.io/jim60105/bgutil-pot:latest
-        ports:
-          - 4416:4416
     steps:
       - name: 🎒 Despliegue de Mochila (Checkout Full-Depth)
         uses: actions/checkout@v4
@@ -53,26 +48,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install nodriver curl_cffi yt-dlp google-genai pillow bgutil-ytdlp-pot-provider
 
+      - name: ⚙️ Motor YouTube Generador BotGuard (Docker)
+        run: |
+          docker run -d --name proveedor-tokens-youtube -p 4416:4416 --restart always ghcr.io/jim60105/bgutil-pot:latest server --host 0.0.0.0 --port 4416
+
       - name: 🐳 Motor TikTok Falsificador de Firmas (Docker Seguro)
         run: |
           git clone https://github.com/carcabot/tiktok-signature.git /tmp/tiktok-signature
           cd /tmp/tiktok-signature
           docker compose up --detach --wait
+          echo "✅ Motor TikTok operativo localmente"
 
       - name: 🩺 Control SRE Verificación de Salud de Puertos y Túnel
         run: |
-          curl -s --fail http://127.0.0.1:4416/ || exit 1
-          curl -s --fail http://127.0.0.1:8080/health || exit 1
-          curl -s --socks5-hostname 127.0.0.1:40000 https://cloudflare.com/cdn-cgi/trace | grep -q "warp=on" || exit 1
-
-      - name: 🐳 Motor TikTok Falsificador de Firmas (Docker)
-        run: |
-          git clone https://github.com/carcabot/tiktok-signature.git
-          cd tiktok-signature
-          docker compose up -d
-          sleep 10
-          docker ps | grep tiktok-signature || (echo "❌ Error: Motor Docker falló" && exit 1)
-          echo "✅ Motor TikTok operativo localmente"
+          sleep 3
+          curl -s http://127.0.0.1:4416/ > /dev/null || (echo "❌ Falla Motor YouTube" && exit 1)
+          curl -s http://127.0.0.1:8080/health > /dev/null || (echo "❌ Falla Motor TikTok" && exit 1)
+          curl -s --socks5-hostname 127.0.0.1:40000 https://cloudflare.com/cdn-cgi/trace | grep -q "warp=on" || (echo "❌ Falla Túnel WARP" && exit 1)
+          echo "✅ Diagnóstico Completo: Sistemas en verde."
 
       - name: ⚡ Ejecución Obrero V21.0 (Modo Autónomo & Sigilo)
         env:
