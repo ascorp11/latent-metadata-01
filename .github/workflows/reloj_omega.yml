@@ -12,6 +12,11 @@ permissions:
 jobs:
   trabajo_del_obrero:
     runs-on: ubuntu-24.04
+    services:
+      bgutil-pot:
+        image: ghcr.io/jim60105/bgutil-pot:latest
+        ports:
+          - 4416:4416
     steps:
       - name: 🎒 Despliegue de Mochila (Checkout Full-Depth)
         uses: actions/checkout@v4
@@ -32,29 +37,33 @@ jobs:
           sudo apt update
           sudo apt install -y brave-browser xvfb wireguard-tools resolvconf curl
 
-      - name: 🌐 Setup Cloudflare WARP (Evasión de ASN Azure)
-        timeout-minutes: 2
+      - name: 🌐 Aprovisionamiento WARP SOCKS5 (Sin Secuestro de Red)
         run: |
-          curl -fsSL https://github.com/ViRb3/wgcf/releases/download/v2.2.22/wgcf_2.2.22_linux_amd64 -o wgcf
-          chmod +x wgcf
-          ./wgcf register --accept-tos
-          ./wgcf generate
-          sudo cp wgcf-profile.conf /etc/wireguard/wg0.conf
-          sudo wg-quick up wg0
-          echo "🌐 IP Pública Enmascarada (WARP):"
-          curl -s https://ifconfig.me
+          curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | sudo gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ bookworm main" | sudo tee /etc/apt/sources.list.d/cloudflare-client.list
+          sudo apt-get update && sudo apt-get install -y cloudflare-warp
+          warp-cli --accept-tos registration new
+          warp-cli --accept-tos mode proxy
+          warp-cli --accept-tos proxy port 40000
+          warp-cli --accept-tos connect
+          sleep 5
 
       - name: 🛠️ Inyección de Herramientas (Arqueología Digital)
         run: |
           python -m pip install --upgrade pip
           pip install nodriver curl_cffi yt-dlp google-genai pillow bgutil-ytdlp-pot-provider
 
-      - name: ⚙️ Motor YouTube Generador BotGuard (Docker)
+      - name: 🐳 Motor TikTok Falsificador de Firmas (Docker Seguro)
         run: |
-          docker run -d --name proveedor-tokens-youtube -p 4416:4416 --restart always ghcr.io/jim60105/bgutil-pot:latest server --host 0.0.0.0 --port 4416
-          sleep 10
-          curl -s http://127.0.0.1:4416 || (echo "❌ Error: Motor YouTube falló" && exit 1)
-          echo "✅ Motor YouTube operativo en puerto 4416"
+          git clone https://github.com/carcabot/tiktok-signature.git /tmp/tiktok-signature
+          cd /tmp/tiktok-signature
+          docker compose up --detach --wait
+
+      - name: 🩺 Control SRE: Verificación de Salud de Puertos y Túnel
+        run: |
+          curl -s --fail http://127.0.0.1:4416/ || exit 1
+          curl -s --fail http://127.0.0.1:8080/health || exit 1
+          curl -s --socks5-hostname 127.0.0.1:40000 https://cloudflare.com/cdn-cgi/trace | grep -q "warp=on" || exit 1
 
       - name: 🐳 Motor TikTok Falsificador de Firmas (Docker)
         run: |
@@ -73,7 +82,11 @@ jobs:
           GEMINI_KEY_3: ${{ secrets.GEMINI_KEY_3 }}
           GEMINI_KEY_4: ${{ secrets.GEMINI_KEY_4 }}
           GEMINI_KEY_5: ${{ secrets.GEMINI_KEY_5 }}
-          GEMINI_KEY_6: ${{ secrets.GEMINI_KEY_6 }}
+          PROXY_URL: "socks5h://127.0.0.1:40000"
+          HTTP_PROXY: "socks5h://127.0.0.1:40000"
+          HTTPS_PROXY: "socks5h://127.0.0.1:40000"
+          ALL_PROXY: "socks5h://127.0.0.1:40000"
+          NO_PROXY: "127.0.0.1,localhost,::1"
         run: xvfb-run -a python "🧠 CEREBRO-  PROMPT MAESTRO V29.1.py"
 
       - name: 💾 Persistencia de Datos (Auto-Commit)
