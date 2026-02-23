@@ -59,7 +59,7 @@ jobs:
           cd /tmp/tiktok-signature
           docker compose up --detach --wait
 
-      - name: 🩺 Control SRE: Verificación de Salud de Puertos y Túnel
+      - name: 🩺 Control SRE Verificación de Salud de Puertos y Túnel
         run: |
           curl -s --fail http://127.0.0.1:4416/ || exit 1
           curl -s --fail http://127.0.0.1:8080/health || exit 1
