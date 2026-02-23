@@ -43,8 +43,12 @@ jobs:
           warp-cli --accept-tos connect
           sleep 5
 
-      - name: 🛠️ Inyección de Herramientas (Requerimientos Dinámicos)
+      - name: 🛠️ Resolución de SO e Inyección de Herramientas (SRE PDF Fix)
         run: |
+          echo "[SRE] Instalando dependencias criptográficas en el núcleo de Ubuntu..."
+          sudo apt-get update -yq
+          sudo apt-get install -yq --no-install-recommends build-essential libnss3 libnspr4 libnss3-nssdb libtinfo5
+          
           python -m pip install --upgrade pip
           echo "[SRE] Escaneando repositorio en busca de archivo de requerimientos..."
           REQ_FILE=$(find . -type f -iname "*requirements*.txt" | head -n 1)
@@ -121,26 +125,7 @@ jobs:
           echo "========================================================================="
           echo "Desplegando instanciación X Virtual Framebuffer Server y enrutando sub-capas gráficas concurrentes..."
           xvfb-run -a python "$TARGET_FILE"
-
-          echo "::group:: 🚀 Operación de Resolución Estructural de Python"
-          shopt -s nullglob
-          shopt -s nocaseglob
           
-          echo "[+] Construyendo ruta atómica evadiendo colapsos léxicos (Emojis/Espacios)..."
-          TARGET_FILE=$(find . -maxdepth 1 -type f -iname "*CEREBRO*.py" | head -n 1)
-          
-          if [ -z "$TARGET_FILE" ]; then
-            echo "❌ ERROR CRÍTICO SRE: El sistema VFS es incapaz de enlazar la coincidencia de inodo requerida por el patrón *CEREBRO*.py."
-            echo "Verifique la propagación material del paso de clonación (actions/checkout)."
-            exit 2
-          fi
-          
-          echo "✅ Enlace material completado. Objetivo inmovilizado en la ruta: '$TARGET_FILE'"
-          
-          echo "[+] Ejecutando contenedor de aplicación mediante envoltura Python..."
-          xvfb-run -a python "$TARGET_FILE"
-          echo "::endgroup::"
-
       - name: 💾 Persistencia de Datos (Auto-Commit)
         run: |
           git config --local user.email "ascorp_bot@github.com"
