@@ -1,3 +1,6 @@
+import os
+import json
+import sys
 import time
 import random
 import glob
@@ -349,7 +352,15 @@ async def ejecutar_obrero():
     
     expertos_totales = []
     try:
-        with open('INDICE_DE_EXPERTOS.md', 'r', encoding='utf-8') as f:
+        # [SRE] Búsqueda heurística del índice para evitar errores [Errno 2] por espacios/versiones
+        archivos_indice = glob.glob("INDICE_DE_EXPERTOS*.md")
+        if not archivos_indice:
+            sys.exit("❌ Error crítico: No se encontró ningún archivo que comience con INDICE_DE_EXPERTOS")
+        
+        indice_objetivo = archivos_indice[0]
+        print(f"📄 [SISTEMA] Leyendo índice atómico desde: {indice_objetivo}")
+        
+        with open(indice_objetivo, 'r', encoding='utf-8') as f:
             for linea in f:
                 if '|' in linea and 'http' in linea:
                     columnas = [c.strip() for c in linea.split('|')]
