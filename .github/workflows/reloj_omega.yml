@@ -67,7 +67,8 @@ jobs:
           curl -s --socks5-hostname 127.0.0.1:40000 https://cloudflare.com/cdn-cgi/trace | grep -q "warp=on" || echo "⚠️ Advertencia: Túnel WARP tardando en enrutar."
           echo "✅ Diagnóstico Completo: Sistemas listos para operar."
 
-      - name: ⚡ Ejecución Obrero V21.0 (Modo Autónomo & Sigilo)
+      - name: ⚡ Ejecución Obrero V21.0 (SRE Zero-Trust Pathing)
+        shell: bash
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_KEY_1: ${{ secrets.GEMINI_KEY_1 }}
@@ -80,7 +81,36 @@ jobs:
           HTTPS_PROXY: "socks5h://127.0.0.1:40000"
           ALL_PROXY: "socks5h://127.0.0.1:40000"
           NO_PROXY: "127.0.0.1,localhost,::1"
-        run: xvfb-run -a python "cerebro.py"
+        run: |
+          echo "::group:: 🔍 SRE Diagnostics: Análisis Crudo de VFS y Codificación"
+          echo -e "\n[INFO] 1. Listado Estándar:"
+          ls -la
+          echo -e "\n[INFO] 2. Modo C-Escape (ls -lb):"
+          ls -la -b
+          echo -e "\n[INFO] 3. Modo Delimitación Estricta (ls -lQ):"
+          ls -la -Q
+          echo -e "\n[INFO] 4. Análisis Hexadecimal Absoluto (find + xxd):"
+          find . -maxdepth 1 -type f -print0 | xxd || true
+          echo "::endgroup::"
+
+          echo "::group:: 🚀 Operación de Resolución Estructural de Python"
+          shopt -s nullglob
+          shopt -s nocaseglob
+          
+          echo "[+] Construyendo ruta atómica evadiendo colapsos léxicos (Emojis/Espacios)..."
+          TARGET_FILE=$(find . -maxdepth 1 -type f -iname "*CEREBRO*.py" | head -n 1)
+          
+          if [ -z "$TARGET_FILE" ]; then
+            echo "❌ ERROR CRÍTICO SRE: El sistema VFS es incapaz de enlazar la coincidencia de inodo requerida por el patrón *CEREBRO*.py."
+            echo "Verifique la propagación material del paso de clonación (actions/checkout)."
+            exit 2
+          fi
+          
+          echo "✅ Enlace material completado. Objetivo inmovilizado en la ruta: '$TARGET_FILE'"
+          
+          echo "[+] Ejecutando contenedor de aplicación mediante envoltura Python..."
+          xvfb-run -a python "$TARGET_FILE"
+          echo "::endgroup::"
 
       - name: 💾 Persistencia de Datos (Auto-Commit)
         run: |
