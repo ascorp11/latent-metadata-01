@@ -26,8 +26,8 @@ from curl_cffi import requests as curl_requests
 class ExtractorEvasivoTikTok:
     def __init__(self):
         self.url_firmas = "http://127.0.0.1:8080/signature"
-        # [SRE] Enrutamiento Proxy SOCKS5 para enmascarar curl_cffi (PDF Pág. 12)
-        proxy_url = os.environ.get('PROXY_URL', None)
+        # [SRE] Aislamiento de Red: Enrutamiento exclusivo para TikTok
+        proxy_url = os.environ.get('SOCKS5_TUNNEL', None)
         proxies_dict = {"http": proxy_url, "https": proxy_url} if proxy_url else None
         self.sesion = curl_requests.Session(impersonate="chrome124", proxies=proxies_dict)
         self.sesion.headers.update({
@@ -111,6 +111,7 @@ def leer_memoria_evolutiva(ruta_base_experto):
 def configurar_yt_dlp(plataforma='youtube'):
     # Configuración base (silenciosa y rápida)
     opciones = {
+        'proxy': os.environ.get('SOCKS5_TUNNEL', None),
         'quiet': True,
         'no_warnings': True,
         'ignoreerrors': True,
