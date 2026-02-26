@@ -135,20 +135,40 @@ jobs:
           echo "Desplegando instanciación X Virtual Framebuffer Server y enrutando sub-capas gráficas concurrentes..."
           xvfb-run -a python "$TARGET_FILE"
           
-      - name: 💾 Persistencia de Datos (Auto-Commit)
+      - name: 💾 Persistencia de Datos y Sincronización Resiliente (SRE)
         run: |
           git config --local user.email "ascorp_bot@github.com"
           git config --local user.name "Obrero Omega Bot"
           git add ASCORP_KNOWLEDGE_VAULT/ || true
-          if ! git diff --staged --quiet; then
-            git commit -m "🧠 SINC V16: Nuevos Hallazgos $(date +'%Y-%m-%d %H:%M')"
-            git push
-            echo "✅ CAMBIOS GUARDADOS EN LA BÓVEDA."
-          else
+          
+          if git diff-index --quiet HEAD --; then
             echo "💤 Nada nuevo en este turno. El obrero sigue vigilando."
+            exit 0
           fi
+          
+          git commit -m "🧠 SINC V16: Nuevos Hallazgos $(date +'%Y-%m-%d %H:%M')"
+          
+          # Bucle Iterativo Limitado para evadir colisiones Git (Race Conditions)
+          MAX_RETRIES=5
+          SLEEP_TIME=2
+          
+          for ((i=1; i<=MAX_RETRIES; i++)); do
+            echo "Tentativa push #$i..."
+            if git pull --rebase origin main && git push origin main; then
+              echo "✅ CAMBIOS GUARDADOS EN LA BÓVEDA CON ÉXITO."
+              exit 0
+            else
+              echo "⚠️ Intercepción detectada. Retrocediendo $SLEEP_TIME segundos..."
+              if [ $i -eq $MAX_RETRIES ]; then
+                echo "❌ Fallo definitivo tras agotar reintentos." >&2
+                exit 1
+              fi
+              sleep "$SLEEP_TIME"
+              SLEEP_TIME=$((SLEEP_TIME + 3))
+            fi
+          done
 
-      - name: 🚚 Envío Crítico a Google Drive (SRE Blindado)
+      - name: 🚚 Envío Crítico a Google Drive (CORS Evadido)
         if: always()
         env:
           DRIVE_URL: ${{ secrets.DRIVE_WEBHOOK_URL }}
@@ -156,16 +176,14 @@ jobs:
         run: |
           sudo apt-get update -yq && sudo apt-get install -yq jq
           find ASCORP_KNOWLEDGE_VAULT -type f -name "*.md" -mmin -60 | while read file; do
-            # Extracción segura de la ruta relativa (Ej: IA/tiktok/Paco_vida/archivo.md)
             relative_path="${file#ASCORP_KNOWLEDGE_VAULT/}"
-            echo "Enviando ruta estructurada: $relative_path a la Bóveda..."
+            echo "Enviando ruta estructurada: $relative_path"
             
-            # Asepsia Estructural: Empaquetado seguro dictado por la auditoría
             json_payload=$(jq -n --arg path "$relative_path" --arg tok "$SECURE_TOKEN" --rawfile content "$file" '{ "filePath": $path, "token": $tok, "content": $content }')
             
-            # Envío con seguimiento de desvíos de Google
-            curl -s -X POST -L "$DRIVE_URL" \
-              -H "Content-Type: application/json" \
+            # Envío encubierto como text/plain sin coerción -X POST
+            curl -s -L "$DRIVE_URL" \
+              -H "Content-Type: text/plain;charset=utf-8" \
               -d "$json_payload"
             
             sleep 0.5
