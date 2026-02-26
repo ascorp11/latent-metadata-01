@@ -140,7 +140,6 @@ jobs:
           git config --local user.email "ascorp_bot@github.com"
           git config --local user.name "Obrero Omega Bot"
           git add ASCORP_KNOWLEDGE_VAULT/ || true
-          git add LATENT_METADATA/ || true
           if ! git diff --staged --quiet; then
             git commit -m "🧠 SINC V16: Nuevos Hallazgos $(date +'%Y-%m-%d %H:%M')"
             git push
@@ -149,17 +148,21 @@ jobs:
             echo "💤 Nada nuevo en este turno. El obrero sigue vigilando."
           fi
 
-      - name: 🚚 Envío Crítico a Google Drive
+      - name: 🚚 Envío Crítico a Google Drive (SRE Blindado)
         if: always()
         env:
           DRIVE_URL: ${{ secrets.DRIVE_WEBHOOK_URL }}
+          SECURE_TOKEN: "OMEGA_2026_SECURE_AUTH"
         run: |
-          sudo apt-get update && sudo apt-get install -y jq
+          sudo apt-get update -yq && sudo apt-get install -yq jq
           find ASCORP_KNOWLEDGE_VAULT -name "*.md" -mmin -60 | while read file; do
             filename=$(basename "$file")
-            content=$(cat "$file")
-            echo "Enviando $filename a Google Drive..."
-            curl -L -X POST "$DRIVE_URL" \
-              -H "Content-Type: application/json" \
-              -d "{\"filename\": \"$filename\", \"content\": $(echo \"$content\" | jq -Rs .)}"
+            echo "Enviando $filename a la Bóveda Segura..."
+            
+            # [SRE] Streaming Directo de Disco a Red (Evita desbordamiento de RAM/Bash)
+            jq -Rs --arg fn "$filename" --arg tok "$SECURE_TOKEN" '{"filename": $fn, "token": $tok, "content": .}' "$file" | \
+            curl -s -L "$DRIVE_URL" -H "Content-Type: text/plain" -d @-
+            
+            # [SRE] Pausa táctica de medio segundo para no asfixiar la API de Google
+            sleep 0.5
           done
