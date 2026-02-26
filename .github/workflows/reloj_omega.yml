@@ -155,14 +155,18 @@ jobs:
           SECURE_TOKEN: "OMEGA_2026_SECURE_AUTH"
         run: |
           sudo apt-get update -yq && sudo apt-get install -yq jq
-          find ASCORP_KNOWLEDGE_VAULT -name "*.md" -mmin -60 | while read file; do
-            filename=$(basename "$file")
-            echo "Enviando $filename a la Bóveda Segura..."
+          find ASCORP_KNOWLEDGE_VAULT -type f -name "*.md" -mmin -60 | while read file; do
+            # Extracción segura de la ruta relativa (Ej: IA/tiktok/Paco_vida/archivo.md)
+            relative_path="${file#ASCORP_KNOWLEDGE_VAULT/}"
+            echo "Enviando ruta estructurada: $relative_path a la Bóveda..."
             
-            # [SRE] Streaming Directo de Disco a Red (Evita desbordamiento de RAM/Bash)
-            jq -Rs --arg fn "$filename" --arg tok "$SECURE_TOKEN" '{"filename": $fn, "token": $tok, "content": .}' "$file" | \
-            curl -s -L "$DRIVE_URL" -H "Content-Type: text/plain" -d @-
+            # Asepsia Estructural: Empaquetado seguro dictado por la auditoría
+            json_payload=$(jq -n --arg path "$relative_path" --arg tok "$SECURE_TOKEN" --rawfile content "$file" '{ "filePath": $path, "token": $tok, "content": $content }')
             
-            # [SRE] Pausa táctica de medio segundo para no asfixiar la API de Google
+            # Envío con seguimiento de desvíos de Google
+            curl -s -X POST -L "$DRIVE_URL" \
+              -H "Content-Type: application/json" \
+              -d "$json_payload"
+            
             sleep 0.5
           done
