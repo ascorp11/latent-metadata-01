@@ -1,0 +1,38 @@
+name: Purga Quirúrgica de Topologías Corruptas
+on: workflow_dispatch
+
+jobs:
+  excision:
+    runs-on: ubuntu-24.04
+    env:
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+    steps:
+      - name: Clonación Profunda del Historial
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Inicialización de Entorno
+        run: |
+          git config --global user.name "SRE-Auditor-Bot"
+          git config --global user.email "sre-auditor@infrastructure.local"
+          git config --global core.quotepath false
+          
+      - name: Ejecución de la Intervención (Filter-Branch)
+        run: |
+          echo "Extirpando comillas y escapes octales radiactivos del historial..."
+          git filter-branch --force --index-filter '
+            git ls-files -s | grep -E "\"|\\\\360" | cut -f4- | xargs -r -d "\n" git rm --cached --ignore-unmatch
+          ' --prune-empty --tag-name-filter cat -- --all
+          
+      - name: Recolección de Basura y Eliminación
+        run: |
+          rm -rf .git/refs/original/ || true
+          git reflog expire --expire=now --all
+          git gc --prune=now --aggressive
+          
+      - name: Sobreescritura Autoritaria del Repositorio Remoto
+        run: |
+          git push origin --force --all
+          git push origin --force --tags
