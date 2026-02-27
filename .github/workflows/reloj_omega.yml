@@ -12,6 +12,9 @@ permissions:
 jobs:
   trabajo_del_obrero:
     runs-on: ubuntu-24.04
+    env:
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
     steps:
       - name: 🎒 Despliegue de Mochila (Checkout Full-Depth)
         uses: actions/checkout@v4
@@ -137,6 +140,9 @@ jobs:
           
       - name: 💾 Persistencia de Datos y Sincronización Resiliente (SRE)
         run: |
+          git config --global core.quotepath false
+          git config --global i18n.commitEncoding utf-8
+          git config --global i18n.logOutputEncoding utf-8
           git config --local user.email "ascorp_bot@github.com"
           git config --local user.name "Obrero Omega Bot"
           git add ASCORP_KNOWLEDGE_VAULT/ || true
@@ -175,7 +181,7 @@ jobs:
           SECURE_TOKEN: "OMEGA_2026_SECURE_AUTH"
         run: |
           sudo apt-get update -yq && sudo apt-get install -yq jq
-          find ASCORP_KNOWLEDGE_VAULT -type f -name "*.md" -mmin -60 | while read file; do
+          find ASCORP_KNOWLEDGE_VAULT -type f -name "*.md" -mmin -60 -print0 | while IFS= read -r -d '' file; do
             relative_path="${file#ASCORP_KNOWLEDGE_VAULT/}"
             echo "Enviando ruta estructurada: $relative_path"
             
