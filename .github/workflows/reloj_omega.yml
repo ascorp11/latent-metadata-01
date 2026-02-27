@@ -181,7 +181,7 @@ jobs:
           SECURE_TOKEN: "OMEGA_2026_SECURE_AUTH"
         run: |
           sudo apt-get update -yq && sudo apt-get install -yq jq
-          find ASCORP_KNOWLEDGE_VAULT -type f -name "*.md" -mmin -60 -print0 | while IFS= read -r -d '' file; do
+          find ASCORP_KNOWLEDGE_VAULT -type f -name "*.md" -print0 | while IFS= read -r -d '' file; do
             relative_path="${file#ASCORP_KNOWLEDGE_VAULT/}"
             echo "Enviando ruta estructurada: $relative_path"
             
