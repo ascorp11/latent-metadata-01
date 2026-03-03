@@ -1,9 +1,19 @@
 import os
+import sys
 import json
 import time
 import random
 import asyncio
 import logging
+# [SRE] Librerías oficiales de Google Drive
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+
+# Alcance de acceso: Permiso total para ver, editar, crear y borrar archivos de Drive
+SCOPES = ['https://www.googleapis.com/auth/drive']
 
 # ==========================================
 # 🛡️ NÚCLEO 1: ESCUDO DE RED SRE (Exponential Backoff + Jitter)
@@ -34,15 +44,41 @@ def escudo_antirrate_limit(max_reintentos=5):
     return decorador
 
 # ==========================================
-# 🛡️ NÚCLEO 2: BLINDAJE DE CONSISTENCIA EVENTUAL (Caché + Mutex)
+# 🛡️ NÚCLEO 2: BLINDAJE DE CONSISTENCIA EVENTUAL Y CONEXIÓN A GOOGLE
 # ==========================================
 class GestorDriveSRE:
     def __init__(self):
-        self.cache_carpetas = {}      # Memoria RAM O(1) para evadir llamadas inútiles a la API
-        self.cerrojo = asyncio.Lock() # Mutex para evitar colisiones entre asincronías
-        self.servicio_drive = None    # Se inicializará con las credenciales de Google
+        self.cache_carpetas = {}      # Memoria RAM O(1)
+        self.cerrojo = asyncio.Lock() # Mutex Anti-Colisión
+        self.servicio = self._autenticar_google()
         
-    async def obtener_o_crear_carpeta(self, nombre_carpeta):
+    def _autenticar_google(self):
+        """[SRE] Enciende el motor conectando con tu cuenta de Google (OAuth 2.0)."""
+        creds = None
+        # token.json guarda tu inicio de sesión para no pedirte permiso todos los días
+        if os.path.exists('token.json'):
+            creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+        
+        # Si no hay credenciales válidas, te pedirá loguearte
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                print("🔐 [AUTENTICACIÓN REQUERIDA]: Se abrirá el navegador para conectar tu Google Drive...")
+                flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+                creds = flow.run_local_server(port=0)
+            with open('token.json', 'w') as token:
+                token.write(creds.to_json())
+                
+        print("✅ [ENLACE ESTABLECIDO]: Satélite Google Drive conectado exitosamente.")
+        return build('drive', 'v3', credentials=creds)
+
+    @escudo_antirrate_limit(max_reintentos=5)
+    async def crear_carpeta(self, nombre_carpeta, id_padre=None):
+        """Ejecuta la llamada real a Google para crear una carpeta (Protegido por el Escudo 429)."""
+        # (Aquí irá la lógica de creación en Drive que construiremos en la siguiente fase)
+        # Para no saturarte de código de golpe, primero validaremos que te puedas conectar.
+        pass
         """[PDF FASE 2.4]: Resuelve el Espejismo de la Nube (Consistencia Eventual)"""
         async with self.cerrojo:
             # 1. Consulta ultrarrápida a la RAM local
@@ -94,6 +130,12 @@ async def arrancar_camion_logistico():
         os.rename(ruta_manifiesto_temp, ruta_manifiesto)
 
 if __name__ == "__main__":
+    # 1. FORZAMOS EL ENCENDIDO DEL MOTOR (Esto abre Google Chrome)
+    gestor = GestorDriveSRE()
+    
+    # 2. Luego arranca la asincronía normal
     if sys.platform == 'win32':
+        import warnings
+        warnings.simplefilter("ignore", DeprecationWarning) # Silenciamos el chisme de Python
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(arrancar_camion_logistico())
