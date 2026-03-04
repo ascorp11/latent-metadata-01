@@ -187,10 +187,13 @@ jobs:
             
             json_payload=$(jq -n --arg path "$relative_path" --arg tok "$SECURE_TOKEN" --rawfile content "$file" '{ "filePath": $path, "token": $tok, "content": $content }')
             
-            # Envío encubierto como text/plain sin coerción -X POST
+            # 1. METEMOS EL TEXTO GIGANTE EN UN ARCHIVO FÍSICO (LA CAJA)
+            echo "$json_payload" > carga_temporal.json
+            
+            # 2. ENVIAMOS LA CAJA USANDO EL ARROBA (@) PARA EVITAR EL LÍMITE DE LINUX
             curl -s -L "$DRIVE_URL" \
               -H "Content-Type: text/plain;charset=utf-8" \
-              -d "$json_payload"
+              -d @carga_temporal.json
             
             sleep 0.5
           done
