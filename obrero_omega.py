@@ -394,6 +394,13 @@ def configurar_yt_dlp(plataforma='youtube'):
         # [SRE] Contención de Memoria y Disco (PDF Pág. 9)
         'concurrent_fragment_downloads': 5,
         'max_filesize': 524288000,
+        # 👇 INYECTAR ESTAS LÍNEAS DE CAMUFLAJE 👇
+        'sleep_interval': random.uniform(5.0, 12.0),
+        'max_sleep_interval': 15.0,
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        }
     }
 
 # [SRE] Evasión CFFI + Firmas Docker para TikTok (PDF Pág. 11)
@@ -597,6 +604,8 @@ async def descargar_inteligencia_multimodal(video_url, cliente_ia):
                     out_img = f"temp_vision_kf_{idx}.jpg"
                     subprocess.run([
                         'ffmpeg', '-hide_banner', '-loglevel', 'error', 
+                        '-user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 
+                        '-headers', 'Referer: https://www.tiktok.com/\r\n',
                         '-ss', str(t), '-i', flujo_url, 
                         '-frames:v', '1', '-q:v', '2', out_img
                     ], check=True, timeout=20)
@@ -805,6 +814,7 @@ async def ejecutar_obrero():
                 # Forzamos la plataforma leyendo la URL real, no la tabla
                 plataforma_real = 'tiktok' if 'tiktok' in video_url.lower() else 'youtube'
                 ruta_final = f"{ruta_base_especialidad}/{plataforma_real}/{nombre.replace(' ', '_')}/{año}"
+                os.makedirs(ruta_final, exist_ok=True) # 👈 ESTO EVITA EL ERROR "No such file"
                 archivo_md = f"{ruta_final}/{fecha_str}_{titulo_clean}.md"
                 print(f"🧠 [ANALIZANDO V17.1] {vid.get('title')}...")
                 
