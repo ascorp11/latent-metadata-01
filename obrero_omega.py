@@ -1,4 +1,4 @@
-import os
+ import os
 import sys
 import json
 import time
@@ -281,10 +281,44 @@ TIENES ESTRICTAMENTE PROHIBIDO RESUMIR O MUTILAR INFORMACIÓN TÉCNICA EN LA DAT
 * **Arquitectura de la Estrategia:** (Desglosa detalladamente las fases, procesos o algoritmos usados por el experto cruzando el audio, video y feed. Agrega textualmente esta orden: "⚠️ LECTOR AUTOMATIZADO: PARA EXTRAER LAS FÓRMULAS O CITAS EXACTAS, DEBES PROCESAR EL 'VAGÓN 1 Y 2' SUPERIORES").
 * **Stack Tecnológico:** (Lista de herramientas, IA o librerías mostradas).
 
-## ⚖️ VAGÓN 5: VALOR ESTRATÉGICO Y PUNTUACIÓN (EL JUEZ)
-* **[PUNTUACIÓN DE DENSIDAD DE VALOR: X/100]:** (Justificación técnica).
-* **HALLAZGO CLAVE:** (El dato crudo de mayor valor).
-* **NEXO_TRANSVERSAL:** [TRANSVERSAL: SÍ/NO]
+## ⚖️ VAGÓN 5: VALOR ESTRATÉGICO Y CLASIFICACIÓN (EL JUEZ)
+* **[PUNTUACIÓN DE DENSIDAD DE VALOR: X/100]:** (Justifica por qué esta información es valiosa o basura).
+* **EVALUACIÓN DE TRANSVERSALIDAD:**
+  - ¿Contiene este contenido una idea, principio o técnica que pertenezca a un departamento distinto al de su Origen?
+  - **NEXO_TRANSVERSAL:** [SÍ/NO]
+  - Si es SÍ, elige ÚNICAMENTE UNA de las siguientes Divisiones Corporativas MECE. Utiliza el siguiente diccionario semántico estricto para no equivocarte:
+
+    1. DIVISIÓN DE ATRACCIÓN ESTRATÉGICA Y DEMAND GENERATION (MARKETING):
+       - Frontera: Opera en el ToFu y MoFu. Termina en la entrega del MQL. No negocia contratos.
+       - Glosario Técnico Obligatorio: Demand Generation, Inbound Marketing, MarTech Stack, SEO, SEM, CMS, PPC, Digital Experience, CRO, A/B Testing, CDP, Marketing Automation, Drip Campaigns, Lead Scoring, MQL, ABM, Attribution Modeling, CAC, LTV, Programmatic Advertising, Behavioral Targeting, Predictive Analytics, Native Advertising, Lookalike Audiences, Retargeting, Customer Segmentation, Push Notifications, SMS Marketing, UGC, PLG, Affiliate Marketing, Influencer Marketing, Voice Search Optimization, VR/AR Marketing, Sentiment Analysis, Social Listening, Lead Nurturing, Brand Equity, GTM, Marketing Mix (4P/7P).
+
+    2. DIVISIÓN DE INGRESOS Y GESTIÓN DEL ÉXITO DEL CLIENTE (VENTAS Y FIDELIZACIÓN):
+       - Frontera: Desde el SQL hasta el cierre, retención, upselling y cross-selling. Dimensión transaccional y relacional.
+       - Glosario Técnico Obligatorio: BANT Framework, SQL, ARR, Churn Rate, Customer Success, Account Executive, SDR/BDR, Cross-selling, Upselling, CPQ, Sales Pipeline, Closing Ratio, Challenger Sale, Discovery Call, Mutual Action Plan (MAP), ACV, CAGR, Sales Velocity, Objection Handling, Inside Sales, Sales Forecasting, Clawback, Net Revenue Retention (NRR), Win/Loss Analysis, Customer Journey Map, CRM, RevOps, Trial Period/POC, Lone Wolf, Blue Bird, NPS, Mirroring.
+
+    3. DIVISIÓN DE ESTRATEGIA CORPORATIVA Y DESARROLLO DE NEGOCIOS:
+       - Frontera: Planificación a largo plazo, asignación de recursos a gran escala y optimización del portafolio. Decide dónde jugar, no opera el día a día.
+       - Glosario Técnico Obligatorio: Corporate Strategy, M&A, Due Diligence, Joint Venture, Divestiture, Porter's Five Forces, Synergy Analysis, Scenario Planning, Market Penetration, Product Development, Market Expansion, Diversification, Inorganic Growth, Strategic Roadmap, Organic Growth, Valuation Multiples, Earn-out, Strategic Fit, Integration Planning, Competitive Intelligence, ESG Strategy, Core Competencies, Parenting Advantage, White Space Analysis, VDR, Opportunity Sourcing, Exit Strategy, Corporate Venturing, SMART Goals, Blue Ocean Strategy.
+
+    4. DIVISIÓN DE INGENIERÍA DE INFRAESTRUCTURA Y SEGURIDAD DE ACTIVOS:
+       - Frontera: Diseño técnico, validación normativa y supervisión de infraestructura. No presupuesta finanzas ni mantiene operaciones diarias.
+       - Glosario Técnico Obligatorio: BIM, ISO 19650, NFPA 13, NFPA 20, NFPA 25, HEC-RAS, EPANET, ASCE 7, ASCE 41, QFPE, Clash Detection, Area-Density Method, K-factor, Friction Loss, Fire Flow, Smoke Control System, Static Pressure, Residual Pressure, Pump Sizing, Fire Wall/Barrier, Intumescent Coatings, Standpipe System, Mass Notification System, Shop Drawings, As-built Drawings, LOD, Hydraulic Gradient, Wet Pipe System, Dry Pipe System, Pre-action System, IFC, Pump Performance Curve.
+
+    5. DIVISIÓN DE EXCELENCIA OPERATIVA Y ARQUITECTURA TECNOLÓGICA (OPERACIONES Y TI):
+       - Frontera: Ejecución de procesos, automatización, gestión de TI y eficiencia máxima (Lean). Gestiona los activos durante su vida útil.
+       - Glosario Técnico Obligatorio: Hyperautomation, RPA, AI Agents, TBM, DMAIC, Lean Manufacturing, 5S Methodology, Kanban, VSM, Kaizen, AppRat, IT Towers, FinOps, DevOps, PDCA, Jidoka, Gemba Walk, Six M's, DOWNTIME, SOP, SLA, Throughput, Orchestration, ERP, Cyber Security Stack, Edge Computing, Low-code/No-code, Context Grounding, Feedback Loops, MTTR.
+
+    6. DIVISIÓN DE PLANIFICACIÓN FINANCIERA, ANÁLISIS Y CONTROL (FINANZAS):
+       - Frontera: Dueño de la "verdad contable" (General Ledger), cumplimiento fiscal, presupuestos y control de rentabilidad matemática.
+       - Glosario Técnico Obligatorio: FP&A, EBITDA, CapEx, OpEx, Accrual Accounting, GAAP/IFRS, Variance Analysis, Working Capital, Cash Conversion Cycle, Revenue Recognition, General Ledger, Chart of Accounts (COA), Depreciation, Amortization, DCF, NPV, IRR, Zero-Based Budgeting (ZBB), Rolling Forecast, Audit Trail, Transfer Pricing, Accounts Payable (AP), Accounts Receivable (AR), ABC, ABB, Gross Margin Ratio, Internal Controls, Tax Planning, WACC, Liquidity Ratio.
+
+  - **CATEGORIA_DESTINO:** [Nombre Exacto de la División de la lista superior]
+
+## 🌐 SÍNTESIS AGÉNTICA TRANSVERSAL (Solo si NEXO_TRANSVERSAL es SÍ)
+(Instrucción Crítica: No actúes como una fotocopiadora. Eres un analista estratégico. Traduce el contexto técnico original al contexto de la categoría destino. Preserva el 100% de la densidad de valor original sin resumir en exceso ni omitir variables clave).
+* **El Puente Contextual:** (Identifica la disciplina de origen, extrae el "principio lógico universal" de la idea del experto, y argumenta de forma técnica y sólida por qué ese principio encaja y resuelve un problema en la CATEGORIA_DESTINO).
+* **La Píldora de Conocimiento:** (Desarrolla la idea, técnica o fórmula con rigor absoluto. Adáptate al tamaño de la idea: si requiere 5 párrafos y viñetas para explicarse bien, úsalos; si es directa, sé conciso. Tu objetivo es que un experto de la categoría destino pueda entender y usar esta información sin haber visto el video original).
+* **Aplicación Táctica:** (Proyecta un caso de uso práctico: ¿Cómo se implementaría esta píldora de conocimiento hoy mismo en la CATEGORIA_DESTINO de una empresa?).
 
 ## 📝 BITÁCORA DE DETALLES "INVISIBLE"
 * (Lista extensa de consejos, 'hacks', intenciones de venta ocultas o advertencias).
