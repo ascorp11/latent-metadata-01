@@ -501,6 +501,20 @@ async def descargar_inteligencia_multimodal(video_url, cliente_ia):
             if archivos_sub:
                 sub_path = archivos_sub[0]
                 break
+        
+        # [MÓDULO DE ESCUCHA PROFUNDA]: Si no hay subtítulos, bajamos el MP3
+        ruta_audio = None
+        if not sub_path:
+            print("🎙️ [SRE] Subtítulos no encontrados. Activando 'Escucha Profunda' (Descargando audio)...")
+            try:
+                subprocess.run([
+                    'yt-dlp', '-f', 'ba', '-x', '--audio-format', 'mp3', 
+                    '--audio-quality', '9', '-o', 'temp_audio.%(ext)s', video_url
+                ], check=True, timeout=120)
+                archivos_audio = glob.glob("temp_audio.mp3")
+                if archivos_audio: ruta_audio = archivos_audio[0]
+            except Exception as e:
+                print(f"⚠️ [SRE] Fallo al extraer audio: {e}")
 
         # --- [SRE] FASE 2: EL FRANCOTIRADOR AGÉNTICO TOMA EL CONTROL ---
         rutas_imagenes = []
@@ -541,7 +555,7 @@ async def descargar_inteligencia_multimodal(video_url, cliente_ia):
                     rutas_imagenes.append(f"temp_vision.{ext}")
                     break
                 
-        return info, rutas_imagenes, sub_path
+        return info, rutas_imagenes, sub_path, ruta_audio
 
 def obtener_modelo_valido(client, target_alias="gemini-1.5-flash"):
     """[PROTOCOLO DE RESILIENCIA]: Usa 'supported_actions' según PDF pág. 7."""
@@ -727,13 +741,21 @@ async def ejecutar_obrero():
                         print(f"🔄 [ASIMILACIÓN FÍSICA]: Archivo foráneo detectado. Asimilando a SQLite...")
                 
                 # 4. EXTRACCIÓN MULTIMODAL (METADATA + VISIÓN)
-                os.makedirs(ruta_final, exist_ok=True)
+                # 3. RUTA DINÁMICA ABSOLUTA Y BLINDADA
+                fecha_str = vid.get('upload_date', datetime.now().strftime('%Y%m%d'))
+                año = fecha_str[:4]
+                titulo_clean = "".join([c if c.isalnum() else "_" for c in vid.get('title', 'video')])[:50]
+
+                # Forzamos la plataforma leyendo la URL real, no la tabla
+                plataforma_real = 'tiktok' if 'tiktok' in video_url.lower() else 'youtube'
+                ruta_final = f"{ruta_base_especialidad}/{plataforma_real}/{nombre.replace(' ', '_')}/{año}"
+                archivo_md = f"{ruta_final}/{fecha_str}_{titulo_clean}.md"
                 print(f"🧠 [ANALIZANDO V17.1] {vid.get('title')}...")
                 
                 try:
                     # Bajamos metadata, mosaico de fotogramas y subtítulos
                     # [SRE] Invocación Multimodal pasando el Cliente IA para la Arquitectura Agéntica
-                    info_rica, rutas_imagenes, sub_path = await descargar_inteligencia_multimodal(video_url, client)
+                    info_rica, rutas_imagenes, sub_path, ruta_audio = await descargar_inteligencia_multimodal(video_url, client)
                     
                     # 5. MEMORIA EVOLUTIVA (Leer pasado histórico)
                     ruta_memoria = f"{ruta_base_especialidad}/{fuente['platform']}/{nombre.replace(' ', '_')}"
@@ -762,6 +784,13 @@ async def ejecutar_obrero():
                         if os.path.exists(ruta_img):
                             try: inputs_gemini.append(Image.open(ruta_img))
                             except: pass
+                        if ruta_audio and os.path.exists(ruta_audio):
+                            print("🎧 [SRE] Subiendo pista de audio MP3 a la IA...")
+                            try:
+                                archivo_audio_gemini = client.files.upload(file=ruta_audio)
+                                inputs_gemini.append(archivo_audio_gemini)
+                            except Exception as e:
+                                print(f"⚠️ Error subiendo audio: {e}")
 
                     # CORRECCIÓN DE MODELO: Usamos la versión estable 'gemini-1.5-flash'
                     # Google eliminó la etiqueta 'latest' para la API gratuita v1beta
@@ -878,6 +907,9 @@ async def ejecutar_obrero():
                         except: pass
                     if sub_path and os.path.exists(sub_path):
                         try: os.remove(sub_path)
+                        except: pass
+                    if ruta_audio and os.path.exists(ruta_audio):
+                        try: os.remove(ruta_audio)
                         except: pass
                         
                     pausa_tactica()
