@@ -391,33 +391,24 @@ def configurar_yt_dlp(plataforma='youtube'):
         'extract_flat': True,
         'lazy_playlist': True,
         'external_downloader': 'aria2c',
-        # [SRE] Contención de Memoria y Disco (PDF Pág. 9)
         'concurrent_fragment_downloads': 5,
         'max_filesize': 524288000,
-        # 👇 INYECTAR ESTAS LÍNEAS DE CAMUFLAJE 👇
-        'sleep_interval': random.uniform(5.0, 12.0),
-        'max_sleep_interval': 15.0,
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        }
+        # [SRE] EVASIÓN TLS FINGERPRINTING GLOBAL
+        'impersonate': 'chrome-116:windows-10',
     }
 
-# [SRE] Evasión CFFI + Firmas Docker para TikTok (PDF Pág. 11)
     if plataforma == 'tiktok':
-        opciones['impersonate'] = ImpersonateTarget.from_str("chrome-116:windows-10")
-        opciones['http_headers'] = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
-            'Referer': 'https://www.tiktok.com/'
-        }
-        # Enrutamiento de peticiones a través de la librería CFFI para evadir TLS JA3
         opciones['extractor_args'] = {'tiktok': {'app_info': '7355728856979392518'}}
         opciones['playlist_items'] = '1-15'
         opciones['playlistreverse'] = False
-    
     else:
-        # Configuración estándar para YouTube (sin cambios)
-        opciones['user_agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        # [SRE] BLOQUE DE EVASIÓN: YOUTUBE Y BOTGUARD (PO TOKEN)
+        opciones['extractor_args'] = {
+            'youtube': {
+                'player_client': ['default', 'mweb', 'ios', 'tv_embedded'],
+                'formats': ['missing_pot']
+            }
+        }
     
     return opciones
 def pausa_tactica():
@@ -570,14 +561,21 @@ async def descargar_inteligencia_multimodal(video_url, cliente_ia):
         if not sub_path:
             print("🎙️ [SRE] Subtítulos no encontrados. Activando 'Escucha Profunda' (Descargando audio)...")
             try:
-                subprocess.run([
-                    'yt-dlp', '-f', 'ba', '-x', '--audio-format', 'mp3', 
-                    '--audio-quality', '9', '-o', 'temp_audio.%(ext)s', video_url
-                ], check=True, timeout=120)
+                # [SRE] USO DE API NATIVA PARA NO PERDER CONTEXTO DE SESIÓN
+                opciones_audio = opciones.copy()
+                opciones_audio.update({
+                    'skip_download': False,
+                    'format': 'ba/bestaudio/best',
+                    'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': '9'}],
+                    'outtmpl': 'temp_audio.%(ext)s'
+                })
+                with yt_dlp.YoutubeDL(opciones_audio) as ydl_audio:
+                    ydl_audio.download([video_url])
+                    
                 archivos_audio = glob.glob("temp_audio.mp3")
                 if archivos_audio: ruta_audio = archivos_audio[0]
             except Exception as e:
-                print(f"⚠️ [SRE] Fallo al extraer audio: {e}")
+                print(f"⚠️ [SRE] Fallo al extraer audio nativo: {e}")
 
         # --- [SRE] FASE 2: EL FRANCOTIRADOR AGÉNTICO TOMA EL CONTROL ---
         rutas_imagenes = []
@@ -599,13 +597,18 @@ async def descargar_inteligencia_multimodal(video_url, cliente_ia):
                     print("🛡️ [SRE] Silencio visual detectado. Aplicando tríptico de seguridad heurístico.")
                     tramos_agenticos = [duracion * 0.25, duracion * 0.50, duracion * 0.75]
                 
+                # [SRE] EXTRACCIÓN DE SESIÓN PARA FFMPEG (CDN ZERO-TRUST)
+                headers_dict = info.get('http_headers', {})
+                formatted_headers = ""
+                for key, value in headers_dict.items():
+                    formatted_headers += f"{key}: {value}\r\n"
+                    
                 print("👁️ [VISIÓN] Orquestando FFmpeg sobre coordenadas agénticas...")
                 for idx, t in enumerate(tramos_agenticos):
                     out_img = f"temp_vision_kf_{idx}.jpg"
                     subprocess.run([
                         'ffmpeg', '-hide_banner', '-loglevel', 'error', 
-                        '-user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 
-                        '-headers', 'Referer: https://www.tiktok.com/\r\n',
+                        '-headers', formatted_headers,
                         '-ss', str(t), '-i', flujo_url, 
                         '-frames:v', '1', '-q:v', '2', out_img
                     ], check=True, timeout=20)
