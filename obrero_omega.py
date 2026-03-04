@@ -1,4 +1,4 @@
- import os
+import os
 import sys
 import json
 import time
@@ -286,39 +286,61 @@ TIENES ESTRICTAMENTE PROHIBIDO RESUMIR O MUTILAR INFORMACIÓN TÉCNICA EN LA DAT
 * **EVALUACIÓN DE TRANSVERSALIDAD:**
   - ¿Contiene este contenido una idea, principio o técnica que pertenezca a un departamento distinto al de su Origen?
   - **NEXO_TRANSVERSAL:** [SÍ/NO]
-  - Si es SÍ, elige ÚNICAMENTE UNA de las siguientes Divisiones Corporativas MECE. Utiliza el siguiente diccionario semántico estricto para no equivocarte:
+  - Si es SÍ, elige ÚNICAMENTE UNA de las siguientes Divisiones Corporativas MECE Estrictas de ASCORP:
 
     1. DIVISIÓN DE ATRACCIÓN ESTRATÉGICA Y DEMAND GENERATION (MARKETING):
-       - Frontera: Opera en el ToFu y MoFu. Termina en la entrega del MQL. No negocia contratos.
-       - Glosario Técnico Obligatorio: Demand Generation, Inbound Marketing, MarTech Stack, SEO, SEM, CMS, PPC, Digital Experience, CRO, A/B Testing, CDP, Marketing Automation, Drip Campaigns, Lead Scoring, MQL, ABM, Attribution Modeling, CAC, LTV, Programmatic Advertising, Behavioral Targeting, Predictive Analytics, Native Advertising, Lookalike Audiences, Retargeting, Customer Segmentation, Push Notifications, SMS Marketing, UGC, PLG, Affiliate Marketing, Influencer Marketing, Voice Search Optimization, VR/AR Marketing, Sentiment Analysis, Social Listening, Lead Nurturing, Brand Equity, GTM, Marketing Mix (4P/7P).
+       - Frontera: Opera en el ToFu y MoFu. Finaliza en la entrega del Lead Calificado por Marketing (MQL).
+       - Foco Técnico: Demand Generation, MarTech Stack, SEO, SEM, PPC, CRO, CDP, ABM, PLG.
+       - Glosario: Attribution Modeling, CAC, LTV, Programmatic, Lookalike Audiences, Retargeting.
+       - Metodologías: Inbound Marketing, A/B Testing, Lead Scoring, Sentiment Analysis.
 
     2. DIVISIÓN DE INGRESOS Y GESTIÓN DEL ÉXITO DEL CLIENTE (VENTAS Y FIDELIZACIÓN):
-       - Frontera: Desde el SQL hasta el cierre, retención, upselling y cross-selling. Dimensión transaccional y relacional.
-       - Glosario Técnico Obligatorio: BANT Framework, SQL, ARR, Churn Rate, Customer Success, Account Executive, SDR/BDR, Cross-selling, Upselling, CPQ, Sales Pipeline, Closing Ratio, Challenger Sale, Discovery Call, Mutual Action Plan (MAP), ACV, CAGR, Sales Velocity, Objection Handling, Inside Sales, Sales Forecasting, Clawback, Net Revenue Retention (NRR), Win/Loss Analysis, Customer Journey Map, CRM, RevOps, Trial Period/POC, Lone Wolf, Blue Bird, NPS, Mirroring.
+       - Frontera: Desde el SQL hasta el cierre, retención, fidelización y expansión (Upselling y Cross-selling).
+       - Foco Técnico: BANT Framework, SQL, ARR, Churn Rate, Customer Success, Account Executive (AE).
+       - Glosario: SDR/BDR, CPQ, Sales Pipeline, Closing Ratio, Challenger Sale, ACV, CAGR, Sales Velocity.
+       - Metodologías: Discovery Call, Mutual Action Plan (MAP), Objection Handling, Win/Loss Analysis.
 
     3. DIVISIÓN DE ESTRATEGIA CORPORATIVA Y DESARROLLO DE NEGOCIOS:
-       - Frontera: Planificación a largo plazo, asignación de recursos a gran escala y optimización del portafolio. Decide dónde jugar, no opera el día a día.
-       - Glosario Técnico Obligatorio: Corporate Strategy, M&A, Due Diligence, Joint Venture, Divestiture, Porter's Five Forces, Synergy Analysis, Scenario Planning, Market Penetration, Product Development, Market Expansion, Diversification, Inorganic Growth, Strategic Roadmap, Organic Growth, Valuation Multiples, Earn-out, Strategic Fit, Integration Planning, Competitive Intelligence, ESG Strategy, Core Competencies, Parenting Advantage, White Space Analysis, VDR, Opportunity Sourcing, Exit Strategy, Corporate Venturing, SMART Goals, Blue Ocean Strategy.
+       - Frontera: Planificación a largo plazo (3-10 años), fusiones, adquisiciones (M&A) y optimización del portafolio.
+       - Foco Técnico: Corporate Strategy, M&A, Due Diligence, Joint Venture, Divestiture, ESG.
+       - Glosario: Synergy Analysis, Scenario Planning, Market Penetration, Product Development.
+       - Metodologías: Porter's Five Forces, SMART Goals, Blue Ocean, Valuation Multiples.
 
     4. DIVISIÓN DE INGENIERÍA DE INFRAESTRUCTURA Y SEGURIDAD DE ACTIVOS:
-       - Frontera: Diseño técnico, validación normativa y supervisión de infraestructura. No presupuesta finanzas ni mantiene operaciones diarias.
-       - Glosario Técnico Obligatorio: BIM, ISO 19650, NFPA 13, NFPA 20, NFPA 25, HEC-RAS, EPANET, ASCE 7, ASCE 41, QFPE, Clash Detection, Area-Density Method, K-factor, Friction Loss, Fire Flow, Smoke Control System, Static Pressure, Residual Pressure, Pump Sizing, Fire Wall/Barrier, Intumescent Coatings, Standpipe System, Mass Notification System, Shop Drawings, As-built Drawings, LOD, Hydraulic Gradient, Wet Pipe System, Dry Pipe System, Pre-action System, IFC, Pump Performance Curve.
+       - Frontera: Diseño técnico, validación normativa (NFPA, ASCE) y supervisión de integridad física de activos.
+       - Foco Técnico: BIM, ISO 19650, NFPA 13, NFPA 20, NFPA 25, HEC-RAS, EPANET, ASCE 7, ASCE 41, QFPE.
+       - Glosario: Clash Detection, Area-Density Method, K-factor, Friction Loss, Fire Flow, Smoke Control.
+       - Metodologías: Static/Residual Pressure, Pump Sizing, Fire Wall/Barrier, Intumescent Coatings.
 
     5. DIVISIÓN DE EXCELENCIA OPERATIVA Y ARQUITECTURA TECNOLÓGICA (OPERACIONES Y TI):
-       - Frontera: Ejecución de procesos, automatización, gestión de TI y eficiencia máxima (Lean). Gestiona los activos durante su vida útil.
-       - Glosario Técnico Obligatorio: Hyperautomation, RPA, AI Agents, TBM, DMAIC, Lean Manufacturing, 5S Methodology, Kanban, VSM, Kaizen, AppRat, IT Towers, FinOps, DevOps, PDCA, Jidoka, Gemba Walk, Six M's, DOWNTIME, SOP, SLA, Throughput, Orchestration, ERP, Cyber Security Stack, Edge Computing, Low-code/No-code, Context Grounding, Feedback Loops, MTTR.
+       - Frontera: Ejecución de procesos, TI corporativa, automatización y mejora continua (Lean/Six Sigma).
+       - Foco Técnico: Hyperautomation, RPA, AI Agents, TBM, DMAIC, Lean Manufacturing, 5S Methodology.
+       - Glosario: Kanban, Value Stream Mapping (VSM), Kaizen, IT Towers, FinOps, DevOps, Jidoka, Gemba Walk.
+       - Metodologías: PDCA, Six M's, DOWNTIME, Root Cause Analysis, Application Rationalization.
 
     6. DIVISIÓN DE PLANIFICACIÓN FINANCIERA, ANÁLISIS Y CONTROL (FINANZAS):
-       - Frontera: Dueño de la "verdad contable" (General Ledger), cumplimiento fiscal, presupuestos y control de rentabilidad matemática.
-       - Glosario Técnico Obligatorio: FP&A, EBITDA, CapEx, OpEx, Accrual Accounting, GAAP/IFRS, Variance Analysis, Working Capital, Cash Conversion Cycle, Revenue Recognition, General Ledger, Chart of Accounts (COA), Depreciation, Amortization, DCF, NPV, IRR, Zero-Based Budgeting (ZBB), Rolling Forecast, Audit Trail, Transfer Pricing, Accounts Payable (AP), Accounts Receivable (AR), ABC, ABB, Gross Margin Ratio, Internal Controls, Tax Planning, WACC, Liquidity Ratio.
+       - Frontera: Verdad contable (General Ledger), cumplimiento fiscal, tesorería, auditoría y control de márgenes.
+       - Foco Técnico: FP&A, EBITDA, CapEx, OpEx, Accrual Accounting, GAAP/IFRS, Variance Analysis.
+       - Glosario: Revenue Recognition, General Ledger, COA, Depreciation, Amortization, DCF, NPV.
+       - Metodologías: Zero-Based Budgeting, Rolling Forecast, Audit Trail, ABC/ABB, WACC.
 
-  - **CATEGORIA_DESTINO:** [Nombre Exacto de la División de la lista superior]
+  - **CATEGORIA_DESTINO:** [Escribe el nombre exacto de la División de la lista superior]
 
 ## 🌐 SÍNTESIS AGÉNTICA TRANSVERSAL (Solo si NEXO_TRANSVERSAL es SÍ)
-(Instrucción Crítica: No actúes como una fotocopiadora. Eres un analista estratégico. Traduce el contexto técnico original al contexto de la categoría destino. Preserva el 100% de la densidad de valor original sin resumir en exceso ni omitir variables clave).
-* **El Puente Contextual:** (Identifica la disciplina de origen, extrae el "principio lógico universal" de la idea del experto, y argumenta de forma técnica y sólida por qué ese principio encaja y resuelve un problema en la CATEGORIA_DESTINO).
-* **La Píldora de Conocimiento:** (Desarrolla la idea, técnica o fórmula con rigor absoluto. Adáptate al tamaño de la idea: si requiere 5 párrafos y viñetas para explicarse bien, úsalos; si es directa, sé conciso. Tu objetivo es que un experto de la categoría destino pueda entender y usar esta información sin haber visto el video original).
-* **Aplicación Táctica:** (Proyecta un caso de uso práctico: ¿Cómo se implementaría esta píldora de conocimiento hoy mismo en la CATEGORIA_DESTINO de una empresa?).
+(Instrucción Crítica: No actúes como una fotocopiadora. Eres un analista estratégico de ASCORP).
+(Traduce el contexto técnico original al contexto de la categoría destino. No resumas en exceso).
+(Preserva el 100% de la densidad de valor original sin omitir variables clave, fórmulas o metodologías).
+* **El Puente Contextual:**
+  - Identifica la disciplina de origen y extrae el "principio lógico universal" de la idea del experto.
+  - Argumenta de forma técnica y sólida por qué ese principio encaja en la CATEGORIA_DESTINO.
+* **La Píldora de Conocimiento:**
+  - Desarrolla la idea, técnica o fórmula con rigor absoluto.
+  - Adáptate al tamaño de la idea: usa el espacio que necesites para que un experto local la use.
+  - Tu objetivo es que un experto del área destino pueda implementarla sin haber visto el video original.
+* **Aplicación Táctica:**
+  - Proyecta un caso de uso práctico: ¿Cómo se implementaría esta píldora hoy mismo en la empresa?
+  - Define los pasos de integración con la infraestructura actual de la categoría destino.
+  - Menciona herramientas o procesos de los glosarios técnicos anteriores que facilitarían la implementación.
 
 ## 📝 BITÁCORA DE DETALLES "INVISIBLE"
 * (Lista extensa de consejos, 'hacks', intenciones de venta ocultas o advertencias).
@@ -900,15 +922,21 @@ async def ejecutar_obrero():
                         f.write(contenido_final)
                     print(f"✅ [BÓVEDA EXPERTO ACTUALIZADA]: {archivo_md}")
 
-                    # COPIA 2 (NEXO): Solo si el Prompt detectó valor transversal
-                    if "[TRANSVERSAL: SÍ]" in response.text:
-                        ruta_nexo = f"ASCORP_KNOWLEDGE_VAULT/🧠_CONOCIMIENTO_TRANSVERSAL/{especialidad}"
+                    # COPIA 2 (NEXO): Guardado Transversal Dinámico (Lee al Juez)
+                    if "NEXO_TRANSVERSAL: SÍ" in response.text or "NEXO_TRANSVERSAL: [SÍ]" in response.text:
+                        # Extraer la Categoría Destino elegida por la IA
+                        match_cat = re.search(r'CATEGORIA_DESTINO:\s*\[?([A-Z_]+)\]?', response.text)
+                        
+                        # Si la IA falla, usamos la división de origen (lo que está antes del '/')
+                        cat_destino = match_cat.group(1) if match_cat else especialidad.split('/')[0]
+                        
+                        ruta_nexo = f"ASCORP_KNOWLEDGE_VAULT/🧠_CONOCIMIENTO_TRANSVERSAL/{cat_destino}"
                         os.makedirs(ruta_nexo, exist_ok=True)
                         archivo_nexo = f"{ruta_nexo}/{fecha_str}_{titulo_clean}.md"
                         
                         with open(archivo_nexo, 'w', encoding='utf-8') as f_n:
                             f_n.write(f"--- 🌐 HALLAZGO TRANSVERSAL ---\nORIGEN: {nombre}\n{contenido_final}")
-                        print(f"✨ [NEXO CREADO]: {archivo_nexo}")
+                        print(f"✨ [NEXO CREADO EN {cat_destino}]: {archivo_nexo}")
 
                     # --- [SRE] SELLADO TRANSACCIONAL SQLITE Y MANIFIESTO DE NUBE ---
                     props_nube = { # Vector de Fase 2: Etiquetas invisibles para API de Drive
