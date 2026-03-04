@@ -133,7 +133,7 @@ Devuelve ÚNICAMENTE un JSON estricto con esta estructura:
 }"""
     try:
         response = cliente_ia.models.generate_content(
-            model='gemini-2.5-flash', # Usamos tu motor principal, máxima inteligencia
+            model='gemini-2.0-flash', # Usamos tu motor principal, máxima inteligencia
             contents=[transcripcion_vtt[:100000]], 
             config={
                 "temperature": 0.0, 
@@ -394,9 +394,8 @@ def configurar_yt_dlp(plataforma='youtube'):
         'concurrent_fragment_downloads': 5,
         'max_filesize': 524288000,
         # [SRE] EVASIÓN TLS FINGERPRINTING GLOBAL
-        'impersonate': 'chrome-116:windows-10',
+        'impersonate': ImpersonateTarget.from_str('chrome-116:windows-10'),
     }
-
     if plataforma == 'tiktok':
         opciones['extractor_args'] = {'tiktok': {'app_info': '7355728856979392518'}}
         opciones['playlist_items'] = '1-15'
@@ -625,7 +624,7 @@ async def descargar_inteligencia_multimodal(video_url, cliente_ia):
                 
         return info, rutas_imagenes, sub_path, ruta_audio
 
-def obtener_modelo_valido(client, target_alias="gemini-1.5-flash"):
+def obtener_modelo_valido(client, target_alias="gemini-2.0-flash"):
     """[PROTOCOLO DE RESILIENCIA]: Usa 'supported_actions' según PDF pág. 7."""
     try:
         modelos = list(client.models.list())
@@ -786,7 +785,7 @@ async def ejecutar_obrero():
                 archivo_md = f"{ruta_final}/{fecha_str}_{titulo_clean}.md"
                 
                 # [SRE] FUENTE DE VERDAD: Definición dinámica del motor cognitivo
-                motor_ia_activo = 'gemini-2.5-flash'
+                motor_ia_activo = 'gemini-2.0-flash'
                        
                 # [SRE] CÁLCULO DE IDENTIDAD CONTEXTUAL (Huella Digital Dinámica)
                 uid_video = generar_uid_contextual(video_id, PROMPT_MAESTRO, motor_ia_activo)
