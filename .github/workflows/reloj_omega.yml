@@ -174,26 +174,77 @@ jobs:
             fi
           done
 
-      - name: 🚚 Envío Crítico a Google Drive (CORS Evadido)
+      - name: 🚚 Envío Crítico a Google Drive con Libro Mayor (SRE Edition)
         if: always()
         env:
           DRIVE_URL: ${{ secrets.DRIVE_WEBHOOK_URL }}
           SECURE_TOKEN: "OMEGA_2026_SECURE_AUTH"
         run: |
           sudo apt-get update -yq && sudo apt-get install -yq jq
+          
+          # 1. GARANTIZAR EXISTENCIA DEL LIBRO MAYOR
+          [ -f sync_state.json ] || echo "{}" > sync_state.json
+          echo "📖 Consultando el Libro Mayor: '$(cat sync_state.json)'"
+
           find ASCORP_KNOWLEDGE_VAULT -type f -name "*.md" -print0 | while IFS= read -r -d '' file; do
             relative_path="${file#ASCORP_KNOWLEDGE_VAULT/}"
-            echo "Enviando ruta estructurada: $relative_path"
+            
+            # 2. FILTRO DE EVASIÓN DE DUPLICADOS
+            ALREADY_SYNCED=$(jq -r --arg path "$relative_path" '.[$path] // empty' sync_state.json)
+            
+            if [ -n "$ALREADY_SYNCED" ]; then
+              echo "⏭️ [SALTADO]: '$relative_path' ya reside en la Bóveda."
+              continue
+            fi
+
+            echo "🚀 [DESPACHANDO]: $relative_path"
             
             json_payload=$(jq -n --arg path "$relative_path" --arg tok "$SECURE_TOKEN" --rawfile content "$file" '{ "filePath": $path, "token": $tok, "content": $content }')
-            
-            # 1. METEMOS EL TEXTO GIGANTE EN UN ARCHIVO FÍSICO (LA CAJA)
             echo "$json_payload" > carga_temporal.json
             
-            # 2. ENVIAMOS LA CAJA USANDO EL ARROBA (@) PARA EVITAR EL LÍMITE DE LINUX
-            curl -s -L "$DRIVE_URL" \
-              -H "Content-Type: text/plain;charset=utf-8" \
-              -d @carga_temporal.json
+            # 3. EJECUCIÓN DEL ENVÍO Y CAPTURA DE RESPUESTA
+            RESPONSE=$(curl -s -L "$DRIVE_URL" -H "Content-Type: text/plain;charset=utf-8" -d @carga_temporal.json)
             
-            sleep 0.5
+            # 4. REGISTRO EN EL LIBRO MAYOR SI GOOGLE CONFIRMA RECEPCIÓN
+            if echo "$RESPONSE" | grep -q '"status":"success"'; then
+              echo "✅ [CONFIRMADO]: Registro exitoso en Google Drive."
+              jq --arg path "$relative_path" '. + {($path): "SYNCED"}' sync_state.json > sync_state_tmp.json && mv sync_state_tmp.json sync_state.json
+            else
+              echo "⚠️ [FALLO]: Google rechazó el paquete. Respuesta: $RESPONSE"
+            fi
+            
+            sleep 0.8
           done
+
+      - name: 💾 Persistencia de Datos y Sincronización del Libro Mayor (SRE)
+        if: always()
+        run: |
+          git config --global core.quotepath false
+          git config --local user.email "ascorp_bot@github.com"
+          git config --local user.name "Obrero Omega Bot"
+          
+          # 🛡️ Agregamos tanto los nuevos hallazgos como el estado del Libro Mayor
+          git add ASCORP_KNOWLEDGE_VAULT/ sync_state.json || true
+          
+          if git diff-index --quiet HEAD --; then
+            echo "💤 Nada nuevo que registrar en la Bóveda ni en el Libro Mayor."
+            exit 0
+          fi
+          
+          git commit -m "🧠 SINC V18: Libro Mayor Actualizado $(date +'%Y-%m-%d %H:%M')"
+          
+          MAX_RETRIES=5
+          SLEEP_TIME=2
+          for ((i=1; i<=MAX_RETRIES; i++)); do
+            echo "Tentativa push #$i..."
+            if git pull --rebase origin main && git push origin main; then
+              echo "✅ CAMBIOS Y LIBRO MAYOR ASEGURADOS CON ÉXITO."
+              exit 0
+            else
+              echo "⚠️ Intercepción detectada. Reintentando..."
+              sleep "$SLEEP_TIME"
+              SLEEP_TIME=$((SLEEP_TIME + 3))
+            fi
+          done
+
+      
